@@ -1,10 +1,14 @@
 *.class
 
-# Fichiers Eclipse
+# Répertoires Eclipse
 bin
+.settings
+
+# Fichiers Eclipse
 .classpath
 .project
 
+# Fichiers CLASS (Java)
 .class
 
 # Mobile Tools for Java (J2ME)
