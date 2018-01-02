@@ -39,7 +39,7 @@ public class Client {
 	public static void main(String[] args) {
 
 		connectToServer();
-	//	shareFile();
+		shareFile();
 
 	}
 

@@ -8,10 +8,13 @@ Date of creation: 14 déc. 2017
 package server;
 
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.StringBufferInputStream;
 import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.UnknownHostException;
+import java.util.Scanner;
 
 public class Server
 {
@@ -20,12 +23,22 @@ public class Server
 	private InetAddress ip;
 	private int port;
 	private ServerSocket listSocket;
+
+	public Server( InetAddress _ip ) throws IOException
+	{
+		this( _ip, PORT_DEFAULT );
+	}
 	
 	public Server( InetAddress _ip, int _port ) throws IOException
 	{
 		ip = _ip;
 		port = _port;
 		
+		launch();
+	}
+	
+	public void launch() throws IOException
+	{
 		createSocket();
 		
 		while( true )
@@ -57,10 +70,12 @@ public class Server
 	{
 		try
 		{
+			// Listening IP
 			InetAddress ip = InetAddress.getByName("127.0.0.1");
 			int port = Server.PORT_DEFAULT;
 			
 			Server s = new Server( ip, port );
+			s.launch();
 		}
 		
 		catch ( UnknownHostException uhe )
