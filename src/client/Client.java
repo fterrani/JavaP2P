@@ -26,33 +26,39 @@ public class Client {
 	 * @param args All arguments are ignored
 	 * 
 	 */
-	
-	private static String serverIP = "127.0.0.1";
-	private static int port = 50000;
-	private static Socket serverSocket;
+
+	private static Socket clientSocket;
 	private static BufferedReader bufferedReader; 
 	private static PrintWriter printWriter; 
 	private static Scanner inputScan = new Scanner(System.in);
 	private static String s ;
+	private MainFrame frame;
+	private String serverIp= "127.0.0.1";;
+	private int port =50000;
+	private int clientID=1;
+	
+	public Client(){
+	 
+		
+	}
 	
 	
 	public static void main(String[] args) {
-
-		connectToServer();
-	//	shareFile();
-
+		Client client1 = new Client ();
+		client1.connectToServer();
+		
 	}
 
-	public static void connectToServer(){
+	public void connectToServer(){
 		
 		try {
-			System.out.println("Connecting to the server: " + serverIP);
-			InetAddress serverAdress = InetAddress.getByName(serverIP);
-			serverSocket = new Socket(serverAdress, port);			
+			System.out.println("Connecting to the server: " + serverIp);
+			InetAddress serverAdress = InetAddress.getByName(serverIp);
+			clientSocket = new Socket(serverAdress, port);			
 		} catch (IOException e) {
 			System.out.println("Connection impossible, check the server IP or server status");
 		}
-		System.out.println("Connected on port: " + serverSocket.getPort());
+		System.out.println("Connected on port: " + clientSocket.getPort());
 		System.out.println("Client registered");
 	
 	}
@@ -60,7 +66,7 @@ public class Client {
 	public static void shareFile() {
 		
 		try {
-			printWriter = new PrintWriter(serverSocket.getOutputStream());
+			printWriter = new PrintWriter(clientSocket.getOutputStream());
 			
 			// send command SHARE 
 			String output = inputScan.nextLine(); 
@@ -74,6 +80,18 @@ public class Client {
 			e.printStackTrace();
 		}
 		
+	}
+
+
+	public int getClientID() {
+		// TODO Auto-generated method stub
+		return clientID;
+	}
+
+
+	public String getServerIP() {
+		// TODO Auto-generated method stub
+		return serverIp;
 	}
 
 
