@@ -44,9 +44,12 @@ public class Client {
 	
 	
 	public static void main(String[] args) {
+
 		Client client1 = new Client ();
 		client1.connectToServer();
 		
+		
+
 	}
 
 	public void connectToServer(){
@@ -63,7 +66,7 @@ public class Client {
 	
 	}
 	
-	public static void shareFile() {
+	public void shareFile() {
 		
 		try {
 			printWriter = new PrintWriter(clientSocket.getOutputStream());

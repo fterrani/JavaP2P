@@ -26,7 +26,7 @@ public class ClientFrame2 extends JFrame  {
 	// panel mainClient 
 	private JPanel mainClient= new JPanel();
 	private JLabel jlMainClient= new JLabel("Main client");
-	private JList jltMainClient= new JList( new String[] {"a","b","c"});
+	private JList jltMainClient= new JList(  new String[] {"a","b","c","b","c","b","c","a","b","c","b","c","b","c","b","c","b","c","b","c","b","c","b","c","b","c","b","c"});
 	private JScrollPane jsMainClient;
 	private JButton jbMainClient= new JButton("Connect");
 	
@@ -54,9 +54,7 @@ public class ClientFrame2 extends JFrame  {
 		setLocationRelativeTo(null);
 		setPreferredSize(new Dimension(1500,1000));
 		setBackground(Color.WHITE);
-		//setResizable(false);
-		
-		
+
 		mainClient.setBackground( Color.GREEN );
 		pnNord.setBackground( Color.RED );
 		jlMainClient.setBackground( Color.BLUE );
@@ -73,19 +71,15 @@ public class ClientFrame2 extends JFrame  {
 	private void addAllComponents(Client c) {
 		
 		// Panel mainClient
-		//jsMainClient= new JScrollPane(jltMainClient);
 		mainClient.setLayout(new BorderLayout());
+		jsMainClient= new JScrollPane(jltMainClient);
 		mainClient.add(jlMainClient, BorderLayout.NORTH);
-		//mainClient.add(jsMainClient);
-		
-		jltMainClient.setBackground( Color.BLACK );
-		
-		mainClient.add(jltMainClient,BorderLayout.CENTER);
+		mainClient.add(jsMainClient,BorderLayout.CENTER);
 		mainClient.add(jbMainClient,BorderLayout.SOUTH);
 		
 		// Panel otherclient
 		
-		jsOtherClients= new JScrollPane(jtOhterClients);
+		jsOtherClients = new JScrollPane(jtOhterClients);
 		otherClient.setLayout(new BorderLayout());;
 		otherClient.add(jlOtherClients,BorderLayout.NORTH);
 		otherClient.add(jsOtherClients,BorderLayout.CENTER);
