@@ -15,7 +15,7 @@ public class MainFrameTest {
 	public static void main(String[] args) {
 	Client cl= new Client();
 		
-	ClientFrame2 c = new ClientFrame2(cl);
+	ClientFrame c = new ClientFrame(cl);
 		
 	}
 	

@@ -1,88 +1,129 @@
 
 /**
 Project name: DP_ProjectP2P 
-File name: ClientFrame.java
+File name: ClientFrame2.java
 Author: Célia Ahmad
-Date of creation: 24 déc. 2017
+Date of creation: 2 janv. 2018
  */
 
 package gui;
 
-import java.awt.*;
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.GridLayout;
+
 
 import javax.swing.*;
+
 import client.Client;
 
 public class ClientFrame extends JFrame {
 
-	private JPanel pnConnexion = new JPanel();
+	private JPanel pnNord = new JPanel();
+	private JPanel pnSud = new JPanel();
 
-	private JLabel ClientID;
-	private JLabel serverIP;
+	// panel mainClient
+	private JPanel mainClient = new JPanel();
+	private JLabel jlMainClient ;
+	private JList jltMainClient ;
+	private JScrollPane jsMainClient;
+	private JButton jbMainClient = new JButton("Connect");
 
-	private JButton jbConnect = new JButton("Connect");
-	private JButton jbDisconnect = new JButton("Disconnect");
-
-	private JPanel pnBase= new JPanel();
-	private JPanel pnNord= new JPanel();
-	private JPanel pnSud= new JPanel();
-	private JPanel pnInfo= new JPanel();
-	private JPanel pnAllFile = new JPanel();
-	private JList<String> jlClientFile;
-	private JScrollPane jscClientFile;
-
+	// panel other Client
+	private JPanel otherClient = new JPanel();
+	private JLabel jlOtherClients = new JLabel("Files available");
+	private JTable jtOhterClients = new JTable();
+	private JScrollPane jsOtherClients;
+	private JButton jbOtherClients = new JButton("Download");
 	
-	final static boolean shouldFill = true;
-	final static boolean shouldWeightX = true;
-	final static boolean RIGHT_TO_LEFT = false;
+	private JList currentDownload = new JList(new String[] { "a", "b", "c", "b", "c", "b", "c", "b", "c", "b", "c", "b",
+			"c", "b", "c", "b", "c", "b", "c", "b", "c" });
+	private JScrollPane jsCurrentDownload;
+	private String[] contenuDossier;
+
+	// panel Info
+	private JPanel pnInfo = new JPanel();
+	private JLabel statut = new JLabel("bonjour");
 
 	public ClientFrame(Client c) {
 
 		setTitle("Interface principale");
 		setDefaultCloseOperation(EXIT_ON_CLOSE);
 		setLocationRelativeTo(null);
-		setPreferredSize(new Dimension(1000, 800));
+		setPreferredSize(new Dimension(1500, 1000));
 		setBackground(Color.WHITE);
+
+		// colors
+		// mainClient.setBackground( Color.GREEN );
+		// pnNord.setBackground( Color.RED );
+		// jlMainClient.setBackground( Color.BLUE );
+		// jlMainClient.setOpaque( true );
+		// jsCurrentDownload.setBackground(Color.PINK);
+		// pnSud.setBackground(Color.PINK);
+
+		setLayout(new BorderLayout());
 		addAllComponents(c);
 
 		pack();
 		setVisible(true);
 
 	}
+	
+	private static void biggerFont( JComponent c )
+	{
+		c.setFont(c.getFont().deriveFont( 24.0f ));
+	}
 
 	private void addAllComponents(Client c) {
-		ClientID = new JLabel();
-		ClientID.setText("ID du client : " + c.getClientID());
 
-		serverIP = new JLabel();
-		serverIP.setText("Adresse IP du server :" + c.getServerIP());
-
-		jbConnect.setBorderPainted(true);
-		jbConnect.setFocusPainted(false);
-		jbConnect.setContentAreaFilled(false);
-		jbDisconnect.setBorderPainted(true);
-		jbDisconnect.setFocusPainted(false);
-		jbDisconnect.setContentAreaFilled(false);
-
-		pnConnexion.setLayout(new BorderLayout());
-		pnInfo.setLayout(new BorderLayout());
-		pnConnexion.add(ClientID, BorderLayout.WEST);
-		pnConnexion.add(serverIP, BorderLayout.EAST);
-		pnInfo.add(jbConnect, BorderLayout.LINE_START);
-		pnInfo.add(jbDisconnect, BorderLayout.LINE_END);
+		// Panel mainClient à gauche dans panel nord
+		mainClient.setLayout(new BorderLayout());
 		
-		jlClientFile = new JList<String>();
-		jscClientFile = new JScrollPane(jlClientFile);
-		jscClientFile.setCursor(new Cursor(Cursor.HAND_CURSOR));
-		jscClientFile.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
-		pnAllFile.add(jscClientFile);
+	    contenuDossier= c.getContenuDossier();
+		jltMainClient= new JList(contenuDossier);
 
-		pnBase.setLayout(new BorderLayout());
-		pnBase.add(pnInfo, BorderLayout.NORTH);
-		pnBase.add(pnConnexion);
-		pnBase.add(pnAllFile, BorderLayout.SOUTH);
-
-		add(pnBase);
+		jsMainClient = new JScrollPane(jltMainClient);
+		jlMainClient = new JLabel("Client ID "+ c.getClientID() + " shared folder");
+		biggerFont(jlMainClient);
 		
+		
+		mainClient.add(jlMainClient, BorderLayout.NORTH);
+		mainClient.add(jsMainClient, BorderLayout.CENTER);
+		mainClient.add(jbMainClient, BorderLayout.SOUTH);
+
+		// Panel otherclient à droite dans panel nord
+		jsOtherClients = new JScrollPane(jtOhterClients);
+		otherClient.setLayout(new BorderLayout());
+		otherClient.add(jlOtherClients, BorderLayout.NORTH);
+		otherClient.add(jsOtherClients, BorderLayout.CENTER);
+		otherClient.add(jbOtherClients, BorderLayout.SOUTH);
+		biggerFont(jlOtherClients);
+
+		// panel nord
+		pnNord.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
+		pnNord.setLayout(new GridLayout(1, 2, 20, 0));
+		pnNord.add(mainClient);
+		pnNord.add(otherClient);
+
+		// panel sud info
+		pnInfo.add(statut);
+
+		// panel sud
+		jsCurrentDownload = new JScrollPane(currentDownload);
+		pnSud.setLayout(new BorderLayout());
+		pnSud.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
+		pnSud.add(jsCurrentDownload, BorderLayout.CENTER);
+
+		add(pnNord, BorderLayout.NORTH);
+		add(pnSud, BorderLayout.CENTER);
+		add(pnInfo, BorderLayout.SOUTH);
+
 	}
+
+	public static void main(String[] args) {
+		// TODO Auto-generated method stub
+
+	}
+
 }
