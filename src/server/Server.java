@@ -8,84 +8,100 @@ Date of creation: 14 déc. 2017
 package server;
 
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.StringBufferInputStream;
+import java.io.ObjectInputStream;
 import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.UnknownHostException;
-import java.util.Scanner;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.Set;
 
-public class Server
+public class Server extends AbstractServer
 {
 	public static final int PORT_DEFAULT = 50000;
+	public static final int DEFAULT_TIMEOUT = 30; // in seconds
 	
-	private InetAddress ip;
-	private int port;
 	private ServerSocket listSocket;
+	
+	private Set<ClientSession> clientSessions;
+	private Set<ClientInfo> clientInfos;
+	private int nextClientId;
+	
+	public Server( InetAddress ip ) throws IOException
+	{
+		this( ip, PORT_DEFAULT );
+	}
+	
+	public Server( InetAddress ip, int port ) throws IOException
+	{
+		super(ip, port);
 
-	public Server( InetAddress _ip ) throws IOException
-	{
-		this( _ip, PORT_DEFAULT );
-	}
-	
-	public Server( InetAddress _ip, int _port ) throws IOException
-	{
-		ip = _ip;
-		port = _port;
+		clientSessions = new HashSet<>();
+		clientInfos = new HashSet<>();
 		
-		launch();
+		nextClientId = 1; // We start client ids at 1
 	}
 	
-	public void launch() throws IOException
-	{
-		createSocket();
-		
-		while( true )
-		{
-			Socket s = listSocket.accept();
-			initClient( s );
-		}
-	}
-	
-	private void createSocket() throws IOException
+	protected void createListeningSocket() throws IOException
 	{
 		System.out.println( "Creating socket..." );
-		listSocket = new ServerSocket( port, 5, ip ); // Backlog defaults to 5
+		super.createListeningSocket();
 	}
 	
-	private void initClient( Socket s ) throws IOException
+	protected Runnable initClient( Socket clientSocket )
 	{
+		ClientSession cs = null;
+		
 		System.out.println("Initializing a new client transaction...");
-		ClientHandler handler = new ClientHandler( s );
-		Thread t = new Thread( handler );
-		t.start();
-	}
-	
-	/**
-	 * Entry point for starting the server.
-	 * @param args All arguments are ignored
-	 */
-	public static void main( String[] args )
-	{
+		
 		try
 		{
-			// Listening IP
-			InetAddress ip = InetAddress.getByName("127.0.0.1");
-			int port = Server.PORT_DEFAULT;
+			ClientInfo clientInfo = new ClientInfo( clientSocket.getInetAddress() );
+			cs = new ClientSession( this, clientSocket, clientInfo );
 			
-			Server s = new Server( ip, port );
-			s.launch();
+			clientInfos.add( clientInfo );
+			clientSessions.add( cs );
+		}
+		catch( IOException ioe )
+		{
+			// TODO Log error
 		}
 		
-		catch ( UnknownHostException uhe )
+		return cs;
+	}
+	
+	public int getNextClientId()
+	{
+		return nextClientId++;
+	}
+	
+	public InetAddress getClientIp( int clientId )
+	{
+		InetAddress ip = null;
+		
+		Iterator<ClientInfo> i = clientInfos.iterator();
+		ClientInfo info;
+		
+		while ( i.hasNext() && ip == null )
 		{
-			System.err.println( "Unknown host! Please make sure the IP address' format is correct." );
+			info = i.next();
+			
+			if ( info.getId() == clientId )
+			{
+				ip = info.getIp();
+			}
 		}
 		
-		catch ( IOException e )
-		{
-			e.printStackTrace();
-		}
+		return ip;
+	}
+	
+	public String[][] getFilelist()
+	{
+		String[][] list = new String[ clientInfos.size() ][0];
+		
+		return null;
 	}
 }

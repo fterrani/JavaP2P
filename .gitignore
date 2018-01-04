@@ -1,5 +1,8 @@
 *.class
 
+# Dossier pour tests des clients
+shareFolders
+
 # Répertoires Eclipse
 bin
 .settings
