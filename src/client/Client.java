@@ -5,7 +5,6 @@ File name: Client.java
 Author: Célia Ahmad
 Date of creation: 14 déc. 2017
  */
-
 package client;
 
 import java.io.BufferedOutputStream;
@@ -15,34 +14,36 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.InetAddress;
-import java.net.InetSocketAddress;
+import java.net.ServerSocket;
 import java.net.Socket;
-import java.net.UnknownHostException;
 import java.util.Scanner;
 
 public class Client {
 
-	/*
-	 * Entry point for starting the client
-	 * 
-	 * @param args All arguments are ignored
-	 * 
-	 */
+	
+	// port for connexion to server
+	private int port1 = 50000 ;
+	// port for incoming connexions
+	private int port2 = 60000 ;
+	
+	private String serverIp = "127.0.0.1";
 	private Socket clientSocket;
 	private BufferedReader bufferedReader;
 	private PrintWriter printWriter;
-	private Scanner inputScan = new Scanner(System.in);
 	private MainFrame frame;
-	private String serverIp = "127.0.0.1";;
-	private int port = 50000;
-	private int clientID = 1;
+	
+	private int clientID =1;
+	private String [] listFileFromServer ;
+	private String response;
 	private File shareFolder;
 	private File[] contenuDossier;
-	private String message;
-
+	private int givenID;
+	private String givenIp;
+	
 	// constructeur sans argument qui crée un dossier au lancement
 	public Client() {
 		initFolder();
+		
 	}
 
 	// constructeur avec argument qui récupère le dossier déjà existant
@@ -51,15 +52,19 @@ public class Client {
 			shareFolder = file;
 		else
 			initFolder();
+		
 	}
 
 	public static void main(String[] args) {
 
 		Client client1 = new Client();
-		client1.connectToServer();
-
+		//client1.connectToServer();
+		
+		//get the available file list from the server
+		
 	}
-
+	
+	
 	private void initFolder() {
 		shareFolder = new File("./shareFolders/client_" + System.currentTimeMillis());
 		if (!shareFolder.exists()) {
@@ -74,31 +79,12 @@ public class Client {
 		}
 
 		System.out.println(shareFolder.getName());
-		System.out.println(shareFolder.listFiles());
+		System.out.println(shareFolder.listFiles().length);
+		
 		contenuDossier = shareFolder.listFiles();
 
 	}
-
-	public void connectToServer() {
-
-		try {
-			System.out.println("Connecting to the server: " + serverIp);
-			InetAddress serverAdress = InetAddress.getByName(serverIp);
-			clientSocket = new Socket(serverAdress, port);
-		} catch (IOException e) {
-			System.out.println("Connection impossible, check the server IP or server status");
-		}
-		System.out.println("Connected on port: " + clientSocket.getPort());
-
-		if (clientSocket.isConnected()) {
-			createWriterAndReader();
-			sendIP();
-			getfilelist();
-			
-		}
-
-	}
-
+	
 	private void createWriterAndReader() {
 		try {
 			printWriter = new PrintWriter(
@@ -109,63 +95,136 @@ public class Client {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-
 	}
 
-	private void getfilelist() {
+	
+	/*Connexion and retrieving file list to/from server*/
+	public void connectToServer() {
 
+		try {
+			System.out.println("Connecting to the server: " + serverIp);
+			InetAddress serverAdress = InetAddress.getByName(serverIp);
+			clientSocket = new Socket(serverAdress, port1);
+		} catch (IOException e) {
+			System.out.println("Connection impossible, check the server IP or server status");
+		}
+		System.out.println("Connected on port: " + clientSocket.getPort());
+
+		if (clientSocket.isConnected()) {
+			createWriterAndReader();
+			sendIP();
+			getfilelistFromServer();
+			shareFiles();
+			givenIp = getIp();
+			connectToClient(givenIp, port2);
+			
+			
+			
+			//close connection to server		
+			try {
+				clientSocket.close();
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+
+	}
+	
+	private void getfilelistFromServer() {
+		
 		printWriter.println("getFileList");
 		printWriter.flush();
+		
 		try {
-			message = readMessage(clientSocket);
+			response = readMessage();
+			String [] rawlist= response.split(" ");
+			String[] strFiles = rawlist[1].split(";");
+		//	listFileFromServer= new String[strFiles.length];
+		
+			for (int i = 0; i < strFiles.length; i++)
+			{
+				String[] parts = strFiles[i].split(":");
+				String clientId = parts[0];
+				String fileName = parts[1];
+				listFileFromServer[i] = parts[0]+ "\t " + parts[1];
+				
+			}		
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
-		}  
-		System.out.println(message);
-		
+		}
 		
 	}
 
 	private void sendIP() {
 		try {
-			printWriter = new PrintWriter(clientSocket.getOutputStream());
+		
 			printWriter.println("register" + " " + clientSocket.getInetAddress());
 			printWriter.flush();
-			message = readMessage(clientSocket);  
-			System.out.println(message);
+			givenID= Integer.parseInt(readMessage());  
+			System.out.println(givenID);
+			setClientID((int)givenID);
+			
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+	
+	private String getIP(int id) {
+		try {
+			printWriter.println("getIp" + " " + 5);
+			printWriter.flush();
+			return givenIp= readMessage();  
 			
 			
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-
+		return null;
 	}
 
 	
-	private String readMessage(Socket socket) throws IOException{
-	       return bufferedReader.readLine();               
+	private String readMessage() throws IOException{
+	       return bufferedReader.readLine();             
 	   }
 	
 	
-	public void shareFile() {
-
-		try {
-			printWriter = new PrintWriter(clientSocket.getOutputStream());
-
-			// send command SHARE
-			String output = inputScan.nextLine();
-			printWriter.println(output);
-			printWriter.flush();
-			printWriter.close();
-
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+	public void shareFiles() {
+	 String listFileToShare = "";
+		
+		for (int j = 0; j < contenuDossier.length; j++) {
+			 listFileToShare += contenuDossier[j];
 		}
-
+		
+		printWriter.println("shareFile" + " " + listFileToShare);
+		printWriter.flush();
+		
 	}
+	
+	
+	 // Sending a file to a client
+	
+	public Socket acceptClientConnection(ServerSocket listeningSocket) throws IOException
+	{
+		Socket clientSendingSocket = listeningSocket.accept() ;
+		return clientSendingSocket ;
+	}
+	
+	
+	// Recieving a file from a client 
+	
+	public Socket connectToClient(String clientName, int port) throws IOException
+	{
+		InetAddress clientAddress = InetAddress.getByName(clientName) ;
+		Socket clientDownloadingSocket = new Socket(clientAddress, port) ;
+		return clientDownloadingSocket ;
+	}
+	
+	
+	//getter and setter 
 
 	public int getClientID() {
 		// TODO Auto-generated method stub
@@ -177,14 +236,21 @@ public class Client {
 		return serverIp;
 	}
 
-	public String[] getContenuDossier() {
-		String[] nomsfichier = new String[contenuDossier.length];
-
-		for (int i = 0; i < contenuDossier.length; i++) {
-			nomsfichier[i] = contenuDossier[i].getName();
-		}
-		return nomsfichier;
+	public void setClientID(int clientID) {
+		this.clientID = clientID;
 	}
+	
+	
+	public String[] getContenuDossier() {
+		return shareFolder.list();
+	}
+	
+	public String[] getDisplayedList() {
+		listFileFromServer= new String [20];
+		listFileFromServer =  new String[] {"1 - test.txt","2 - para.txt", "3 - progdistribuee.txt" };
+		return listFileFromServer;
+	}
+
 	//
 
 }

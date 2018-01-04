@@ -12,7 +12,7 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.GridLayout;
-
+import java.util.ArrayList;
 
 import javax.swing.*;
 
@@ -28,19 +28,20 @@ public class ClientFrame extends JFrame {
 	private JLabel jlMainClient ;
 	private JList jltMainClient ;
 	private JScrollPane jsMainClient;
-	private JButton jbMainClient = new JButton("Connect");
+	private JButton jbMainClient = new JButton("Refresh list ");
 
 	// panel other Client
 	private JPanel otherClient = new JPanel();
 	private JLabel jlOtherClients = new JLabel("Files available");
-	private JTable jtOhterClients = new JTable();
+//	private JTable jtOhterClients = new JTable();
+	private JList jtOtherClients ;
 	private JScrollPane jsOtherClients;
 	private JButton jbOtherClients = new JButton("Download");
 	
-	private JList currentDownload = new JList(new String[] { "a", "b", "c", "b", "c", "b", "c", "b", "c", "b", "c", "b",
-			"c", "b", "c", "b", "c", "b", "c", "b", "c" });
+	private JList currentDownload = new JList(new String[] { "a", "b", "c", });
 	private JScrollPane jsCurrentDownload;
 	private String[] contenuDossier;
+	private String[] listFiles;
 
 	// panel Info
 	private JPanel pnInfo = new JPanel();
@@ -93,7 +94,9 @@ public class ClientFrame extends JFrame {
 		mainClient.add(jbMainClient, BorderLayout.SOUTH);
 
 		// Panel otherclient à droite dans panel nord
-		jsOtherClients = new JScrollPane(jtOhterClients);
+		listFiles = c.getDisplayedList();
+		jtOtherClients = new JList(listFiles);
+		jsOtherClients = new JScrollPane(jtOtherClients);
 		otherClient.setLayout(new BorderLayout());
 		otherClient.add(jlOtherClients, BorderLayout.NORTH);
 		otherClient.add(jsOtherClients, BorderLayout.CENTER);
@@ -122,8 +125,7 @@ public class ClientFrame extends JFrame {
 	}
 
 	public static void main(String[] args) {
-		// TODO Auto-generated method stub
-
+	
 	}
 
 }
