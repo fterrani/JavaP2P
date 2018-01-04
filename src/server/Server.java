@@ -22,7 +22,7 @@ import java.util.Set;
 public class Server extends AbstractServer
 {
 	public static final int PORT_DEFAULT = 50000;
-	public static final int DEFAULT_TIMEOUT = 30; // in seconds
+	public static final int DEFAULT_TIMEOUT = 60 * 5; // in seconds
 	
 	private ServerSocket listSocket;
 	
@@ -100,8 +100,22 @@ public class Server extends AbstractServer
 	
 	public String[][] getFilelist()
 	{
-		String[][] list = new String[ clientInfos.size() ][0];
+		ArrayList<String[]> list = new ArrayList<>();
 		
-		return null;
+		Iterator<ClientInfo> i = clientInfos.iterator();
+		ClientInfo ci;
+		
+		while( i.hasNext() )
+		{
+			ci = i.next();
+			String[] files = ci.getSharedFiles();
+			
+			for (int j = 0; j < files.length; j++)
+			{
+				list.add( new String[] { Integer.toString( ci.getId() ), files[j] } );
+			}
+		}
+		
+		return list.toArray( new String[0][]);
 	}
 }

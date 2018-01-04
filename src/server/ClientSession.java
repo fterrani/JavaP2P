@@ -75,7 +75,7 @@ public class ClientSession implements Runnable
 	{
 		if ( args.length > 1 )
 		{
-			sendError( "1 argument expected (received "+args.length+")" );
+			//sendError( "1 argument expected (received "+args.length+")" );
 			return;
 		}
 		
@@ -89,47 +89,42 @@ public class ClientSession implements Runnable
 
 		if ( ip == null )
 		{
-			sendError( "Invalid IP format ("+args[0]+")" );
+			//sendError( "Invalid IP format ("+args[0]+")" );
 			return;
 		}
 
 		if ( ! ip.equals( clientInfo.getIp() ) )
 		{
-			sendError(
+			/*sendError(
 				String.format(
 					"Provided IP (%s) does not match yours (%s)",
 					ip.getHostAddress(),
 					clientInfo.getIp().getHostAddress()
 				)
-			);
+			);*/
 			return;
 		}
 		
-		registerClient();
-	}
-	
-	private void registerClient()
-	{
 		int id = server.getNextClientId();
 		
 		clientInfo.setId( id );
 		
 		sendTextData( Integer.toString(id) );
 		
-		sendMessage(
+		/*sendMessage(
 			String.format(
 				"IP (%s) has been registered with the following ID: %s%n",
 				clientInfo.getIp().getHostAddress(),
 				id
 			)
-		);
+		);*/
 	}
 
 	private void cmdSharelist( String[] args )
 	{
 		if ( args.length == 0 )
 		{
-			sendError( "no argument received" );
+			//sendError( "no argument received" );
 			return;
 		}
 		
@@ -140,14 +135,14 @@ public class ClientSession implements Runnable
 		
 		clientInfo.setSharedFiles( args );
 		
-		sendMessage( "Filelist of "+clientInfo+" was updated." );
+		//sendMessage( "Filelist of "+clientInfo+" was updated." );
 	}
 	
 	private void cmdGetfilelist( String[] args )
 	{
 		if ( args.length != 0 )
 		{
-			sendError( "0 argument expected" );
+			//sendError( "0 argument expected" );
 			return;
 		}
 		
@@ -166,14 +161,14 @@ public class ClientSession implements Runnable
 		}
 		
 		sendTextData( sb.toString() );
-		sendMessage( "Current filelist was sent to client " + clientInfo );
+		//sendMessage( "Current filelist was sent to client " + clientInfo );
 	}
 	
 	private void cmdGetip( String[] args )
 	{
 		if ( args.length != 1 )
 		{
-			sendError( "1 argument expected" );
+			//sendError( "1 argument expected" );
 			return;
 		}
 		
@@ -187,7 +182,7 @@ public class ClientSession implements Runnable
 		
 		if ( clientId <= 0 )
 		{
-			sendError( "Invalid client ID" );
+			//sendError( "Invalid client ID" );
 			return;
 		}
 		
@@ -195,7 +190,7 @@ public class ClientSession implements Runnable
 		
 		if ( ip == null )
 		{
-			sendError( "client ID not found" );
+			//sendError( "client ID not found" );
 			return;
 		}
 		
@@ -267,7 +262,7 @@ public class ClientSession implements Runnable
 				}
 				
 				// We check if a timeout occured
-				timeoutOccured = System.currentTimeMillis() < timeout;
+				timeoutOccured = System.currentTimeMillis() >= timeout;
 			}
 			
 			if (timeoutOccured)
@@ -289,8 +284,8 @@ public class ClientSession implements Runnable
 		
 		catch( IOException ioe )
 		{
-			System.out.println( "I/O error!" );
-			ioe.printStackTrace();
+			System.out.println( "I/O error with " + clientInfo );
+			// ioe.printStackTrace();
 		}
 		
 		// If we get here, the client session has ended

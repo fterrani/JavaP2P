@@ -10,6 +10,8 @@ package server;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
+import java.time.format.DateTimeFormatter;
+import java.util.Date;
 import java.util.logging.Level;
 import java.util.logging.LogRecord;
 
@@ -22,6 +24,7 @@ import javax.swing.event.TableModelListener;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableModel;
+import javax.swing.text.DateFormatter;
 
 public class ServerFrame extends JFrame
 {
@@ -48,7 +51,7 @@ public class ServerFrame extends JFrame
 		logPanel = new JPanel();
 		
 		
-		logModel = new DefaultTableModel( new String[] {"Type", "Message"}, 0 );
+		logModel = new DefaultTableModel( new String[] {"Date and time", "Type", "Message"}, 0 );
 		logTable = new JTable( logModel );
 		
 		logTable.setDefaultRenderer( Object.class, new LogTableCellRenderer() );
@@ -83,14 +86,14 @@ public class ServerFrame extends JFrame
 		setLocationRelativeTo( null );
 		
 
-		addLogMessage( new LogRecord( Level.INFO, "Information message") );
-		addLogMessage( new LogRecord( Level.WARNING, "Warning message") );
-		addLogMessage( new LogRecord( Level.SEVERE, "Severe message") );
+		addLogMessage( new Date(System.currentTimeMillis()), new LogRecord( Level.INFO, "Information message") );
+		addLogMessage( new Date(System.currentTimeMillis()), new LogRecord( Level.WARNING, "Warning message") );
+		addLogMessage( new Date(System.currentTimeMillis()), new LogRecord( Level.SEVERE, "Severe message") );
 		
 		//logTable.setModel( logModel );
 	}
 	
-	private void addLogMessage( LogRecord rec )
+	private void addLogMessage( Date dt, LogRecord rec )
 	{
 		String type = "????";
 		
@@ -103,6 +106,7 @@ public class ServerFrame extends JFrame
 		
 		logModel.addRow( new String[]
 		{
+			dt.toString(),
 			type,
 			rec.getMessage()
 		});

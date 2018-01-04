@@ -13,12 +13,14 @@ import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.GridLayout;
 import java.util.ArrayList;
+import java.util.Observable;
+import java.util.Observer;
 
 import javax.swing.*;
 
 import client.Client;
 
-public class ClientFrame extends JFrame {
+public class ClientFrame extends JFrame implements Observer {
 
 	private JPanel pnNord = new JPanel();
 	private JPanel pnSud = new JPanel();
@@ -128,4 +130,14 @@ public class ClientFrame extends JFrame {
 	
 	}
 
+	public void update(Observable o, Object arg)
+	{
+		if ( o instanceof Client )
+		{
+			Client c = (Client) o;
+			
+			// Update the GUI because the Client changed:
+			// ID, IP, sharefolder, server filelist, ...
+		}
+	}
 }

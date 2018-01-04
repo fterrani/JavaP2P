@@ -19,7 +19,7 @@ public class LogTableCellRenderer extends DefaultTableCellRenderer
 	{
 		Component c = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
 		
-		Object objValue = table.getModel().getValueAt(row, 0);
+		Object objValue = table.getModel().getValueAt(row, 1);
 		
 		if (objValue != null)
 		{

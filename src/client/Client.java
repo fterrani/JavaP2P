@@ -16,11 +16,12 @@ import java.io.PrintWriter;
 import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.Observable;
+import java.util.Observer;
 import java.util.Scanner;
 
-public class Client {
-
-	
+public class Client extends Observable
+{
 	// port for connexion to server
 	private int port1 = 50000 ;
 	// port for incoming connexions
@@ -30,20 +31,33 @@ public class Client {
 	private Socket clientSocket;
 	private BufferedReader bufferedReader;
 	private PrintWriter printWriter;
-	private MainFrame frame;
 	
 	private int clientID =1;
-	private String [] listFileFromServer ;
-	private String response;
+	private String[] listFileFromServer = new String[0];
+	private String[] response;
 	private File shareFolder;
-	private File[] contenuDossier;
-	private int givenID;
+	//private File[] contenuDossier;
 	private String givenIp;
 	
 	// constructeur sans argument qui crée un dossier au lancement
 	public Client() {
-		initFolder();
 		
+		initFolder();
+	}
+	
+	public void addObserver( Observer o )
+	{
+		super.addObserver(o);
+		
+		// We only warn the observer that has just been added
+		o.update(this, null);
+	}
+	
+	// Marks the model as changed and notifies all observers
+	private void changeAndNotifyObservers()
+	{
+		setChanged();
+		notifyObservers();
 	}
 
 	// constructeur avec argument qui récupère le dossier déjà existant
@@ -53,16 +67,7 @@ public class Client {
 		else
 			initFolder();
 		
-	}
-
-	public static void main(String[] args) {
-
-		Client client1 = new Client();
-		//client1.connectToServer();
-		
-		//get the available file list from the server
-	}
-	
+	}	
 	
 	private void initFolder() {
 		shareFolder = new File("./shareFolders/client_" + System.currentTimeMillis());
@@ -80,8 +85,7 @@ public class Client {
 		System.out.println(shareFolder.getName());
 		System.out.println(shareFolder.listFiles().length);
 		
-		contenuDossier = shareFolder.listFiles();
-
+		changeAndNotifyObservers();
 	}
 	
 	private void createWriterAndReader() {
@@ -112,8 +116,8 @@ public class Client {
 		if (clientSocket.isConnected()) {
 			createWriterAndReader();
 			sendIP();
-			getfilelistFromServer();
 			shareFiles();
+			getfilelistFromServer();
 			//givenIp = getIp();
 			//connectToClient(givenIp, port2);
 			
@@ -127,7 +131,16 @@ public class Client {
 				e.printStackTrace();
 			}
 		}
-
+	}
+	
+	private String[] splitMessage( String message )
+	{
+		String[] parts = new String[2];
+		
+		parts[0] = message.substring(0, 4);
+		parts[1] = message.substring(5);
+		
+		return parts;
 	}
 	
 	private void getfilelistFromServer() {
@@ -137,19 +150,29 @@ public class Client {
 		
 		try {
 			response = readMessage();
-			String [] rawlist= response.split(" ");
-			String[] strFiles = rawlist[1].split(";");
-		//	listFileFromServer= new String[strFiles.length];
-		
-			for (int i = 0; i < strFiles.length; i++)
+			
+			System.out.println( response[0] + " >>> '" + response[1] + "'");
+			
+			if ( response[1].equals("") )
 			{
-				String[] parts = strFiles[i].split(":");
-				String clientId = parts[0];
-				String fileName = parts[1];
-				listFileFromServer[i] = parts[0]+ "\t " + parts[1];
-				
-			}		
-		} catch (IOException e) {
+				listFileFromServer = new String[0];
+			}
+			
+			else
+			{
+				String[] strFiles = response[1].split(";");
+				listFileFromServer = new String[strFiles.length];
+			
+				for (int i = 0; i < strFiles.length; i++)
+				{
+					String[] parts = strFiles[i].split(":");
+					listFileFromServer[i] = parts[0]+ "\t" + parts[1];
+				}
+			}
+			
+			changeAndNotifyObservers();
+		}
+		catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
@@ -159,9 +182,12 @@ public class Client {
 	private void sendIP() {
 		try {
 		
-			printWriter.println("register" + " " + clientSocket.getInetAddress());
+			printWriter.println("register" + " " + clientSocket.getInetAddress().getHostAddress() );
 			printWriter.flush();
-			givenID= Integer.parseInt(readMessage());  
+			
+			response = readMessage();
+			
+			int givenID = Integer.parseInt( response[1] );
 			System.out.println(givenID);
 			setClientID((int)givenID);
 			
@@ -175,7 +201,13 @@ public class Client {
 		try {
 			printWriter.println("getIp" + " " + 5);
 			printWriter.flush();
-			return givenIp= readMessage();  
+			
+			response = readMessage();
+			
+			givenIp = response[1];
+			
+			changeAndNotifyObservers();
+			return givenIp;
 			
 			
 		} catch (IOException e) {
@@ -186,21 +218,22 @@ public class Client {
 	}
 
 	
-	private String readMessage() throws IOException{
-	       return bufferedReader.readLine();             
+	private String[] readMessage() throws IOException{
+	       return splitMessage( bufferedReader.readLine() );             
 	   }
 	
 	
 	public void shareFiles() {
-	 String listFileToShare = "";
+		String listFileToShare = "";
 		
+		File[] contenuDossier = shareFolder.listFiles();
+	 
 		for (int j = 0; j < contenuDossier.length; j++) {
 			 listFileToShare += contenuDossier[j];
 		}
 		
-		printWriter.println("shareFile" + " " + listFileToShare);
+		printWriter.println("shareList" + " " + listFileToShare);
 		printWriter.flush();
-		
 	}
 	
 	
@@ -235,8 +268,10 @@ public class Client {
 		return serverIp;
 	}
 
-	public void setClientID(int clientID) {
+	public void setClientID(int clientID)
+	{
 		this.clientID = clientID;
+		changeAndNotifyObservers();
 	}
 	
 	
@@ -245,8 +280,8 @@ public class Client {
 	}
 	
 	public String[] getDisplayedList() {
-		listFileFromServer= new String [20];
-		listFileFromServer =  new String[] {"1 - test.txt","2 - para.txt", "3 - progdistribuee.txt" };
+		//listFileFromServer= new String [20];
+		//listFileFromServer =  new String[] {"1 - test.txt","2 - para.txt", "3 - progdistribuee.txt" };
 		return listFileFromServer;
 	}
 
