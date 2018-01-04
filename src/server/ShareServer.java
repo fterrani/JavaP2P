@@ -17,37 +17,50 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.Observer;
 import java.util.Set;
+import java.util.logging.Logger;
 
-public class Server extends AbstractServer
+public class ShareServer extends AbstractServer
 {
 	public static final int PORT_DEFAULT = 50000;
-	public static final int DEFAULT_TIMEOUT = 60 * 5; // in seconds
+	public static final int DEFAULT_TIMEOUT = 30; // in seconds
 	
-	private ServerSocket listSocket;
+	private ShareServerModel model;
+	private Logger logger;
 	
-	private Set<ClientSession> clientSessions;
-	private Set<ClientInfo> clientInfos;
-	private int nextClientId;
-	
-	public Server( InetAddress ip ) throws IOException
+	public ShareServer( InetAddress ip ) throws IOException
 	{
 		this( ip, PORT_DEFAULT );
 	}
 	
-	public Server( InetAddress ip, int port ) throws IOException
+	public ShareServer( InetAddress ip, int port ) throws IOException
 	{
 		super(ip, port);
 
-		clientSessions = new HashSet<>();
-		clientInfos = new HashSet<>();
-		
-		nextClientId = 1; // We start client ids at 1
+		model = new ShareServerModel();
+		logger = Logger.getLogger("share_server");
+	}
+
+	public ShareServerModel getModel()
+	{
+		return model;
+	}
+	
+	public Logger getLogger()
+	{
+		return logger;
+	}
+	
+	public void launch() throws IOException
+	{
+		logger.info("Server is starting...");
+		super.launch();
 	}
 	
 	protected void createListeningSocket() throws IOException
 	{
-		System.out.println( "Creating socket..." );
+		logger.info("Listening on " + ip.getHostAddress() + ":" + port );
 		super.createListeningSocket();
 	}
 	
@@ -55,19 +68,27 @@ public class Server extends AbstractServer
 	{
 		ClientSession cs = null;
 		
-		System.out.println("Initializing a new client transaction...");
+		logger.info(
+			"Initializing a new client session with "
+			+ clientSocket.getInetAddress().getHostAddress()
+			+ ":" + clientSocket.getPort()
+		);
 		
 		try
 		{
-			ClientInfo clientInfo = new ClientInfo( clientSocket.getInetAddress() );
+			ClientInfo clientInfo = new ClientInfo( clientSocket.getInetAddress(), clientSocket.getPort() );
 			cs = new ClientSession( this, clientSocket, clientInfo );
 			
-			clientInfos.add( clientInfo );
-			clientSessions.add( cs );
+			model.addClientInfo( clientInfo );
+			model.addClientSession( cs );
 		}
 		catch( IOException ioe )
 		{
-			// TODO Log error
+			logger.severe(
+				"I/O error when preparing socket with "
+				+ clientSocket.getInetAddress().getHostAddress()
+				+ ":" + clientSocket.getPort()
+			);
 		}
 		
 		return cs;
@@ -75,14 +96,14 @@ public class Server extends AbstractServer
 	
 	public int getNextClientId()
 	{
-		return nextClientId++;
+		return model.getNextClientId();
 	}
 	
 	public InetAddress getClientIp( int clientId )
 	{
 		InetAddress ip = null;
 		
-		Iterator<ClientInfo> i = clientInfos.iterator();
+		Iterator<ClientInfo> i = model.getInfosIterator();
 		ClientInfo info;
 		
 		while ( i.hasNext() && ip == null )
@@ -102,7 +123,7 @@ public class Server extends AbstractServer
 	{
 		ArrayList<String[]> list = new ArrayList<>();
 		
-		Iterator<ClientInfo> i = clientInfos.iterator();
+		Iterator<ClientInfo> i = model.getInfosIterator();
 		ClientInfo ci;
 		
 		while( i.hasNext() )

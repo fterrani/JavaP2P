@@ -5,7 +5,7 @@ Author: Fabien
 Date of creation: 4 janv. 2018
  */
 
-package server;
+package server.gui;
 
 import java.awt.Color;
 import java.awt.Component;
@@ -27,9 +27,9 @@ public class LogTableCellRenderer extends DefaultTableCellRenderer
 			
 			switch (type)
 			{
-				case "INFO": c.setBackground( new Color(0.95f, 0.98f, 1.0f) ); break;
-				case "WARN": c.setBackground( new Color(1.0f, 0.95f, 0.5f) ); break;
-				case "EROR": c.setBackground( new Color(1.0f, 0.90f, 0.90f) ); break;
+				case "INFO": c.setBackground( new Color(0.90f, 0.95f, 1.0f) ); break;
+				case "WARN": c.setBackground( new Color(1.0f, 0.95f, 0.55f) ); break;
+				case "EROR": c.setBackground( new Color(1.0f, 0.75f, 0.75f) ); break;
 			}
 		}
 		

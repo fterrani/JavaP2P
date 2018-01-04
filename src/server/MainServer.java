@@ -10,6 +10,9 @@ package server;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+import java.util.logging.FileHandler;
+
+import server.gui.ShareServerFrame;
 
 public class MainServer
 {
@@ -23,11 +26,20 @@ public class MainServer
 		{
 			// Listening IP
 			InetAddress ip = InetAddress.getByName("127.0.0.1");
-			int port = Server.PORT_DEFAULT;
+			int port = ShareServer.PORT_DEFAULT;
 			
-			Server s = new Server( ip, port );
-			ServerFrame sf = new ServerFrame( s );
+			// Creating the server
+			ShareServer s = new ShareServer( ip, port );
 			
+			// Creating the frame
+			ShareServerFrame sf = new ShareServerFrame( s );
+			
+			// Logs event in a file
+			FileHandler fileLog = new FileHandler("./server_log.txt", true);
+			fileLog.setFormatter( new CustomFormatter() );
+			s.getLogger().addHandler( fileLog );
+			
+			// Shows the frame and launches the server
 			sf.setVisible( true );
 			s.launch();
 		}

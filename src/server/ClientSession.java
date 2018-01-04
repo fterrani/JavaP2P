@@ -24,13 +24,14 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.Scanner;
 import java.util.Set;
+import java.util.logging.Level;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class ClientSession implements Runnable
 {
 	// Network-related variables
-	private Server server;
+	private ShareServer server;
 	private Socket socket;
 	private long timeout;
 	
@@ -42,7 +43,7 @@ public class ClientSession implements Runnable
 	private ClientInfo clientInfo;
 	
 	
-	public ClientSession( Server _server, Socket _socket, ClientInfo _clientInfo ) throws IOException
+	public ClientSession( ShareServer _server, Socket _socket, ClientInfo _clientInfo ) throws IOException
 	{
 		server = _server;
 		socket = _socket;
@@ -60,6 +61,8 @@ public class ClientSession implements Runnable
 			),
 			true // Auto-flushing enabled
 		);
+		
+		log( Level.INFO, "Socket ready to be used." );
 	}
 	
 	private void resetTimeout( int seconds )
@@ -73,9 +76,9 @@ public class ClientSession implements Runnable
 	
 	private void cmdRegister( String[] args )
 	{
-		if ( args.length > 1 )
+		if ( args.length != 1 )
 		{
-			//sendError( "1 argument expected (received "+args.length+")" );
+			log( Level.WARNING, "register", "1 argument expected (received "+args.length+")" );
 			return;
 		}
 		
@@ -89,42 +92,44 @@ public class ClientSession implements Runnable
 
 		if ( ip == null )
 		{
-			//sendError( "Invalid IP format ("+args[0]+")" );
+			log( Level.WARNING, "register", "Invalid IP format ("+args[0]+")" );
 			return;
 		}
 
 		if ( ! ip.equals( clientInfo.getIp() ) )
 		{
-			/*sendError(
+			log( Level.WARNING,
+				"register",
 				String.format(
 					"Provided IP (%s) does not match yours (%s)",
 					ip.getHostAddress(),
 					clientInfo.getIp().getHostAddress()
 				)
-			);*/
+			);
 			return;
 		}
 		
 		int id = server.getNextClientId();
-		
 		clientInfo.setId( id );
 		
 		sendTextData( Integer.toString(id) );
 		
-		/*sendMessage(
+		log(
+			Level.INFO,
+			"register",
 			String.format(
 				"IP (%s) has been registered with the following ID: %s%n",
 				clientInfo.getIp().getHostAddress(),
 				id
 			)
-		);*/
+		);
 	}
 
 	private void cmdSharelist( String[] args )
 	{
 		if ( args.length == 0 )
 		{
-			//sendError( "no argument received" );
+			log( Level.WARNING, "sharelist", "no argument received" );
 			return;
 		}
 		
@@ -135,14 +140,14 @@ public class ClientSession implements Runnable
 		
 		clientInfo.setSharedFiles( args );
 		
-		//sendMessage( "Filelist of "+clientInfo+" was updated." );
+		log( Level.INFO, "sharelist", "Sharelist of the client has been updated." );
 	}
 	
 	private void cmdGetfilelist( String[] args )
 	{
 		if ( args.length != 0 )
 		{
-			//sendError( "0 argument expected" );
+			log( Level.WARNING, "getfilelist", "0 arguments expected ("+args.length+" given)" );
 			return;
 		}
 		
@@ -161,14 +166,15 @@ public class ClientSession implements Runnable
 		}
 		
 		sendTextData( sb.toString() );
-		//sendMessage( "Current filelist was sent to client " + clientInfo );
+		
+		log( Level.INFO, "getfilelist", "Current server sharelist was sent to the client." );
 	}
 	
 	private void cmdGetip( String[] args )
 	{
 		if ( args.length != 1 )
 		{
-			//sendError( "1 argument expected" );
+			log( Level.WARNING, "getip", "1 argument expected ("+args.length+" given)" );
 			return;
 		}
 		
@@ -182,7 +188,7 @@ public class ClientSession implements Runnable
 		
 		if ( clientId <= 0 )
 		{
-			//sendError( "Invalid client ID" );
+			log( Level.WARNING, "getip", "Invalid client ID ("+ args[0] +")" );
 			return;
 		}
 		
@@ -190,7 +196,7 @@ public class ClientSession implements Runnable
 		
 		if ( ip == null )
 		{
-			//sendError( "client ID not found" );
+			log( Level.WARNING, "getip", "client ID not found ("+ clientId +")" );
 			return;
 		}
 		
@@ -211,13 +217,30 @@ public class ClientSession implements Runnable
 	{
 		osw.println( "DATA " + txt );
 	}
+
+	private void log( Level logLevel, String txt )
+	{
+		log( logLevel, null, txt );
+	}
+	
+	private void log( Level logLevel, String command, String txt )
+	{
+		String msg = clientInfo + ": ";
+		
+		if (command != null)
+			msg += command + " => ";
+		
+		msg += txt;
+		
+		server.getLogger().log( logLevel, msg );
+	}
 	
 	public void run()
 	{
 		try
 		{
 			// We give the client some time to reply
-			resetTimeout( Server.DEFAULT_TIMEOUT );
+			resetTimeout( ShareServer.DEFAULT_TIMEOUT );
 			
 			boolean timeoutOccured = false;
 			boolean clientQuit = false;
@@ -258,7 +281,7 @@ public class ClientSession implements Runnable
 					}
 					
 					// We give again some seconds to the client to send something
-					resetTimeout( Server.DEFAULT_TIMEOUT );
+					resetTimeout( ShareServer.DEFAULT_TIMEOUT );
 				}
 				
 				// We check if a timeout occured
@@ -267,28 +290,27 @@ public class ClientSession implements Runnable
 			
 			if (timeoutOccured)
 			{
-				System.out.printf(
-					clientInfo + " timeout: more than 30 seconds without receiving a command!%n",
-					socket.getInetAddress().getHostAddress()
-				);
+				log( Level.WARNING, "Timeout occured. Too much time without receiving a command." );
 			}
 			
 			if (clientQuit)
 			{
-				System.out.printf(
-					clientInfo + " ended transaction gracefully.%n",
-					socket.getInetAddress().getHostAddress()
-				);
+				log( Level.INFO, "Session ended gracefully." );
 			}
 		}
 		
 		catch( IOException ioe )
 		{
-			System.out.println( "I/O error with " + clientInfo );
-			// ioe.printStackTrace();
+			log( Level.SEVERE, "I/O error" );
 		}
 		
+		
 		// If we get here, the client session has ended
+		try {
+			socket.close();
+			log( Level.INFO, "Socket closed." );
+		}
+		catch( IOException ioe ) {}
 	}
 
 	public ClientInfo getClientInfo()

@@ -10,19 +10,35 @@ package server;
 import java.net.InetAddress;
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.Observable;
+import java.util.Observer;
 import java.util.Set;
 
-public class ClientInfo
+public class ClientInfo extends Observable
 {
 	private InetAddress ip;
+	private int port;
 	private int id;
 	private Set<String> fileList; // Set of files shared by the client
 	
-	public ClientInfo( InetAddress ip )
+	public ClientInfo( InetAddress ip, int port )
 	{
 		this.ip = ip;
+		this.port = port;
 		this.id = -1;
 		this.fileList = new HashSet<>();
+	}
+	
+	public void addObserver( Observer o )
+	{
+		super.addObserver( o );
+		o.update( this, null );
+	}
+	
+	public void changeAndNotify()
+	{
+		setChanged();
+		notifyObservers();
 	}
 
 	public InetAddress getIp()
@@ -38,6 +54,7 @@ public class ClientInfo
 	public void setId( int id )
 	{
 		this.id = id;
+		changeAndNotify();
 	}
 
 	public String[] getSharedFiles()
@@ -50,13 +67,14 @@ public class ClientInfo
 	{
 		fileList.clear();
 		fileList.addAll( Arrays.asList(files) );
+		changeAndNotify();
 	}
 	
 	public String toString()
 	{
 		if ( id > 0 )
-			return String.format("client %s (%s)", id, ip.getHostAddress() );
+			return String.format("Client %s (%s:%s)", id, ip.getHostAddress(), port );
 		else
-			return String.format("unregistered client (%s)", ip.getHostAddress() );
+			return String.format("Unregistered client (%s:%s)", ip.getHostAddress(), port );
 	}
 }
