@@ -20,15 +20,22 @@ import common.ConvenienceObservable;
 
 public class ShareServerModel extends ConvenienceObservable implements Observer
 {
+	private boolean started;
 	private int nextClientId;
 	private Set<ClientSession> clientSessions;
 	private Set<ClientInfo> clientInfos;
 	
 	public ShareServerModel()
 	{
+		setStarted(false);
 		nextClientId = 1;
 		clientSessions = new HashSet<>();
 		clientInfos = new HashSet<>();
+	}
+	
+	public int getNumberOfClients()
+	{
+		return clientSessions.size();
 	}
 	
 	public int getNextClientId()
@@ -56,7 +63,32 @@ public class ShareServerModel extends ConvenienceObservable implements Observer
 		return ip;
 	}
 	
+	public boolean clientIdExists( int id )
+	{
+		boolean found = false;
+		Iterator<ClientInfo> i = getInfosIterator();
+		ClientInfo ci;
+		
+		while( !found && i.hasNext() )
+		{
+			ci = i.next();
+			
+			if ( ci.getId() == id )
+			{
+				found = true;
+			}
+		}
+		
+		return found;
+	}
+	
 	public String[][] getFilelist()
+	{
+		// Calling with -1 will create a list containing all files shared by all clients
+		return getFilelist( -1 );
+	}
+	
+	public String[][] getFilelist( int clientId )
 	{
 		ArrayList<String[]> list = new ArrayList<>();
 		
@@ -66,11 +98,17 @@ public class ShareServerModel extends ConvenienceObservable implements Observer
 		while( i.hasNext() )
 		{
 			ci = i.next();
-			String[] files = ci.getSharedFiles();
 			
-			for (int j = 0; j < files.length; j++)
+			// We add the client's files if every client's files must be returned (-1),
+			// or if the clientId we want matches the client's
+			if ( clientId == -1 || clientId == ci.getId() )
 			{
-				list.add( new String[] { Integer.toString( ci.getId() ), files[j] } );
+				String[] files = ci.getSharedFiles();
+				
+				for (int j = 0; j < files.length; j++)
+				{
+					list.add( new String[] { Integer.toString( ci.getId() ), files[j] } );
+				}
 			}
 		}
 		
@@ -115,6 +153,18 @@ public class ShareServerModel extends ConvenienceObservable implements Observer
 
 	public void update( Observable o, Object args )
 	{
+		// If clientInfos were updated, we warn the server model observers
+		changeAndNotify();
+	}
+
+	public boolean isStarted()
+	{
+		return started;
+	}
+
+	public void setStarted( boolean started )
+	{
+		this.started = started;
 		changeAndNotify();
 	}
 }

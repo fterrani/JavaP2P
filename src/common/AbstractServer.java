@@ -44,4 +44,14 @@ public abstract class AbstractServer
 	}
 	
 	protected abstract Runnable initClient( Socket clientSocket );
+	
+	public InetAddress getIp()
+	{
+		return ip;
+	}
+	
+	public int getPort()
+	{
+		return port;
+	}
 }

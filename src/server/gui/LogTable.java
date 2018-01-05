@@ -22,7 +22,7 @@ import javax.swing.table.DefaultTableModel;
 
 public class LogTable
 {
-	private static SimpleDateFormat logTimeFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.S");
+	private static SimpleDateFormat logTimeFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
 	
 	private ArrayList<LogRecord> records;
 	private DefaultTableModel model;
@@ -60,16 +60,6 @@ public class LogTable
 			record.getMessage()
 		});
 	}
-	
-	public Level getRowType( int i )
-	{
-		LogRecord record = records.get(i);
-		
-		if (record == null)
-			return null;
-		else
-			return record.getLevel();
-	}
 
 	public JTable getTable()
 	{
@@ -83,6 +73,11 @@ public class LogTable
 	
 	private class LogTableCellRenderer extends DefaultTableCellRenderer
 	{
+		public LogTableCellRenderer()
+		{
+			super();
+		}
+		
 		public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column)
 		{
 			Component c = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);

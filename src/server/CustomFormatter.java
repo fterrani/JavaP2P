@@ -6,7 +6,7 @@ import java.util.logging.LogRecord;
 
 public class CustomFormatter extends Formatter
 {
-	private static SimpleDateFormat logTimeFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.S");
+	private static SimpleDateFormat logTimeFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
 	
 	public CustomFormatter()
 	{

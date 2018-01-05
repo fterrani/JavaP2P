@@ -3,6 +3,9 @@
 # Dossier pour tests des clients
 shareFolders
 
+# Dossier des logs serveur
+server_logs
+
 # Répertoires Eclipse
 bin
 .settings

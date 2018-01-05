@@ -109,7 +109,7 @@ public class ClientSession implements Runnable
 			Level.INFO,
 			"register",
 			String.format(
-				"IP (%s) has been registered with the following ID: %s%n",
+				"IP (%s) has been registered with the following ID: %s",
 				clientInfo.getIp().getHostAddress(),
 				id
 			)
@@ -134,16 +134,77 @@ public class ClientSession implements Runnable
 		log( Level.INFO, "sharelist", "Sharelist of the client has been updated." );
 	}
 	
+	// Returns the client ID if it is a positive number and is associated with a client.
+	// returns -1 otherwise.
+	private int parseAndCheckClientId( String arg )
+	{
+		int clientId = -1;
+		boolean isNumber = true;
+		boolean positiveNumber = true;
+		
+		try
+		{
+			// We try to parse the string
+			clientId = Integer.parseInt( arg );
+			
+			// If the parsing succeeded, we check if the number is a potentially existing client ID
+			if (clientId <= 0)
+			{
+				positiveNumber = false;
+			}
+		}
+		catch(NumberFormatException nfe)
+		{
+			isNumber = false;
+		}
+		
+		if ( !isNumber || !positiveNumber )
+		{
+			log( Level.WARNING, "Invalid client ID ("+ arg +")" );
+			return -1;
+		}
+		
+		if ( server.getModel().clientIdExists( clientId ) )
+		{
+			log( Level.INFO, "No client with ID "+ clientId );
+			return -1;
+		}
+		
+		return clientId;
+	}
+	
 	private void cmdGetfilelist( String[] args )
 	{
-		if ( args.length != 0 )
+		if ( args.length > 1 )
 		{
-			log( Level.WARNING, "getfilelist", "0 arguments expected ("+args.length+" given)" );
+			log( Level.WARNING, "getfilelist", "0 or 1 argument expected ("+args.length+" given)" );
 			return;
 		}
 		
-		String[][] filelist = server.getModel().getFilelist();
+		String[][] filelist = new String[0][0];
 		
+		if (args.length == 0)
+		{
+			filelist = server.getModel().getFilelist();
+		}
+		
+		else if (args.length == 1)
+		{
+			int clientId = parseAndCheckClientId( args[0] );
+			
+			if (clientId <= 0)
+			{
+				// We send an error and nothing else if the 1 argument version of getfilelist
+				// was used and an invalid ID was received
+				sendError( "Invalid ID received or no client found with this ID ("+args[0]+")" );
+				return;
+			}
+			
+			filelist = server.getModel().getFilelist( clientId );
+		}
+		
+		// In other case (0 argument, or 1 argument with a potentially existing client ID),
+		// we try to return the associated list
 		StringBuffer sb = new StringBuffer("");
 		
 		for (int i = 0; i < filelist.length; i++)
@@ -161,6 +222,8 @@ public class ClientSession implements Runnable
 		log( Level.INFO, "getfilelist", "Current server sharelist was sent to the client." );
 	}
 	
+	
+	
 	private void cmdGetip( String[] args )
 	{
 		if ( args.length != 1 )
@@ -169,28 +232,28 @@ public class ClientSession implements Runnable
 			return;
 		}
 		
-		int clientId = -1;
+		int clientId = parseAndCheckClientId( args[0] );
 		
-		try
-		{
-			clientId = Integer.parseInt( args[0] );
-		}
-		catch(NumberFormatException nfe) {}
 		
 		if ( clientId <= 0 )
 		{
-			log( Level.WARNING, "getip", "Invalid client ID ("+ args[0] +")" );
+			// The ID does not exist or is not associated with a client
+			sendError( "Invalid ID received ("+args[0]+")" );
 			return;
 		}
 		
-		InetAddress ip = server.getModel().getClientIp(clientId);
+		// If clientId > 0, we know a client with this ID exists
+		InetAddress ip = server.getModel().getClientIp( clientId );
 		
+		// No IP found (theoretically, this should never happen)
 		if ( ip == null )
 		{
-			log( Level.WARNING, "getip", "client ID not found ("+ clientId +")" );
+			log( Level.WARNING, "getip", "No matching IP found for client with ID "+ clientId );
+			sendError("No IP found for client with ID " + clientId );
 			return;
 		}
 		
+		// IP found, we send it
 		sendTextData( ip.getHostAddress() );
 	}
 

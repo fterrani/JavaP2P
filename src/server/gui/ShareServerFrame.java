@@ -9,6 +9,7 @@ package server.gui;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Component;
 import java.awt.Dimension;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
@@ -24,6 +25,7 @@ import java.util.logging.LogRecord;
 
 import javax.swing.BorderFactory;
 import javax.swing.JFrame;
+import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTabbedPane;
@@ -41,6 +43,8 @@ public class ShareServerFrame extends JFrame implements Observer
 {
 	private ShareServer server;
 	
+	private JLabel status;
+	
 	private JTabbedPane tabs;
 	private JPanel filesPanel;
 	private JPanel logPanel;
@@ -56,10 +60,10 @@ public class ShareServerFrame extends JFrame implements Observer
 	{
 		server = _server;
 		
-		
+		status = new JLabel("Server is starting...");
+		status.setBorder( BorderFactory.createEmptyBorder(20, 20, 20, 20));
 		
 		logTable = new LogTable();
-		makeTableFontBigger( logTable.getTable() );
 		
 		// This will display the server's logs in the log table
 		server.getLogger().addHandler( logTable.getHandler() );
@@ -67,7 +71,6 @@ public class ShareServerFrame extends JFrame implements Observer
 		filesColumns = new String[] {"Client ID", "Client IP", "File name"};
 		filesModel = new DefaultTableModel( filesColumns, 0 );
 		filesTable = new JTable( filesModel );
-		makeTableFontBigger( filesTable );
 		
 		filesPanel = new JPanel();
 		filesPanel.setBorder( BorderFactory.createEmptyBorder(20, 20, 20, 20) );
@@ -86,6 +89,12 @@ public class ShareServerFrame extends JFrame implements Observer
 		tabs.addTab( "Logs", logPanel );
 		
 		add( tabs, BorderLayout.CENTER );
+		add( status, BorderLayout.NORTH );
+		
+		
+		makeFontBigger( logTable.getTable() );
+		makeFontBigger( filesTable );
+		makeFontBigger( status );
 		
 		
 		// We must observe here to make sure all variables are ready to be used
@@ -98,33 +107,49 @@ public class ShareServerFrame extends JFrame implements Observer
 		setLocationRelativeTo( null );
 	}
 	
-	private void makeTableFontBigger( JTable table )
+	private void makeFontBigger( Component c )
 	{
-		table.setFont( table.getFont().deriveFont( 16f ) );
-		table.setRowHeight( table.getFont().getSize() + 6 );
+		c.setFont( c.getFont().deriveFont( 16f ) );
+		
+		if ( c instanceof JTable )
+			((JTable) c ).setRowHeight( c.getFont().getSize() + 6 );
 	}
 
 	public void update( Observable o, Object arg )
 	{
-		if ( o instanceof ShareServerModel )
+		if ( o == server.getModel() )
 		{
-			ShareServerModel model = (ShareServerModel) o;
-			
-			// update the shared files list !!
-			String[][] fileList = model.getFilelist();
-			
-			for (int i = 0; i < fileList.length; i++)
-			{
-				fileList[i] = new String[] {
-					fileList[i][0],
-					server.getModel().getClientIp( Integer.parseInt(fileList[i][0]) ).getHostAddress(),
-					fileList[i][1]
-				};
-			}
-			
-			filesModel.setDataVector( fileList, filesColumns );
+			updateStatus();
+			refreshFilelist();
 		}
 	}
+
+	public void updateStatus()
+	{
+		status.setText(
+			String.format(
+				"Server listening on IP %s, on port %s",
+				server.getIp().getHostAddress(),
+				server.getPort()
+			)
+		);
+	}
 	
+	public void refreshFilelist()
+	{
+		// update the shared files list !!
+		String[][] fileList = server.getModel().getFilelist();
+		
+		for (int i = 0; i < fileList.length; i++)
+		{
+			fileList[i] = new String[] {
+				fileList[i][0],
+				server.getModel().getClientIp( Integer.parseInt(fileList[i][0]) ).getHostAddress(),
+				fileList[i][1]
+			};
+		}
+		
+		filesModel.setDataVector( fileList, filesColumns );
+	}
 	
 }

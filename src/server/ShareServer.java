@@ -55,6 +55,9 @@ public class ShareServer extends AbstractServer
 	{
 		logger.info("Listening on " + ip.getHostAddress() + ":" + port );
 		super.createListeningSocket();
+		
+		// We consider the server started when we are about to listen to client connections
+		model.setStarted( true );
 	}
 	
 	protected Runnable initClient( Socket clientSocket )
