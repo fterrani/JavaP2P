@@ -19,6 +19,9 @@ import java.util.Observer;
 import javax.swing.*;
 
 import client.Client;
+import client.PeerClient;
+import client.PeerServer;
+import client.ShareServerSession;
 
 public class ClientFrame extends JFrame implements Observer {
 
@@ -48,16 +51,26 @@ public class ClientFrame extends JFrame implements Observer {
 	// panel Info
 	private JPanel pnInfo = new JPanel();
 	private JLabel statut = new JLabel("bonjour");
+	
+	private ShareServerSession sss;
+	private PeerServer ps;
+	private PeerClient pc;
+	
 
-	public ClientFrame(Client c) {
+	public ClientFrame(Client cl) {
+		sss = cl.getSss();
+		ps = cl.getPs();
+		pc = cl.getPc();
 
 		setTitle("Interface principale");
 		setDefaultCloseOperation(EXIT_ON_CLOSE);
-		setLocationRelativeTo(null);
+		
 		setPreferredSize(new Dimension(1500, 1000));
+		setLocationRelativeTo(null);
 		setBackground(Color.WHITE);
-		statut.setText("Connected to " + c.getServerIp() );
-
+		statut.setText("Connected to " + sss.getServerIP());
+		
+		
 		// colors
 		// mainClient.setBackground( Color.GREEN );
 		// pnNord.setBackground( Color.RED );
@@ -67,7 +80,7 @@ public class ClientFrame extends JFrame implements Observer {
 		// pnSud.setBackground(Color.PINK);
 
 		setLayout(new BorderLayout());
-		addAllComponents(c);
+		addAllComponents();
 
 		pack();
 		setVisible(true);
@@ -79,16 +92,16 @@ public class ClientFrame extends JFrame implements Observer {
 		c.setFont(c.getFont().deriveFont( 24.0f ));
 	}
 
-	private void addAllComponents(Client c) {
+	private void addAllComponents() {
 
 		// Panel mainClient à gauche dans panel nord
 		mainClient.setLayout(new BorderLayout());
 		
-	    contenuDossier= c.getContenuDossier();
+	    contenuDossier= sss.getContenuDossier();
 		jltMainClient= new JList(contenuDossier);
 
 		jsMainClient = new JScrollPane(jltMainClient);
-		jlMainClient = new JLabel("Client ID "+ c.getClientID() + " shared folder");
+		jlMainClient = new JLabel("Client ID "+  sss.getClientID() + " shared folder");
 		biggerFont(jlMainClient);
 		
 		
@@ -97,7 +110,7 @@ public class ClientFrame extends JFrame implements Observer {
 		mainClient.add(jbMainClient, BorderLayout.SOUTH);
 
 		// Panel otherclient à droite dans panel nord
-		listFiles = c.getDisplayedList();
+		listFiles = sss.getDisplayedList();
 		jtOtherClients = new JList(listFiles);
 		jsOtherClients = new JScrollPane(jtOtherClients);
 		otherClient.setLayout(new BorderLayout());
@@ -126,6 +139,8 @@ public class ClientFrame extends JFrame implements Observer {
 		add(pnInfo, BorderLayout.SOUTH);
 
 	}
+	
+	
 
 	public static void main(String[] args) {
 	
@@ -133,9 +148,9 @@ public class ClientFrame extends JFrame implements Observer {
 
 	public void update(Observable o, Object arg)
 	{
-		if ( o instanceof Client )
+		if ( o instanceof ShareServerSession )
 		{
-			Client c = (Client) o;
+			ShareServerSession Ss = (ShareServerSession) o;
 			
 			// Update the GUI because the Client changed:
 			// ID, IP, sharefolder, server filelist, ...
