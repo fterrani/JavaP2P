@@ -56,6 +56,7 @@ public class ClientFrame extends JFrame implements Observer {
 		setLocationRelativeTo(null);
 		setPreferredSize(new Dimension(1500, 1000));
 		setBackground(Color.WHITE);
+		statut.setText("Connected to " + c.getServerIp() );
 
 		// colors
 		// mainClient.setBackground( Color.GREEN );

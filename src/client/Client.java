@@ -28,6 +28,8 @@ public class Client extends Observable
 	private int port2 = 60000 ;
 	
 	private String serverIp = "127.0.0.1";
+	
+
 	private Socket clientSocket;
 	private BufferedReader bufferedReader;
 	private PrintWriter printWriter;
@@ -280,11 +282,12 @@ public class Client extends Observable
 	}
 	
 	public String[] getDisplayedList() {
-		//listFileFromServer= new String [20];
-		//listFileFromServer =  new String[] {"1 - test.txt","2 - para.txt", "3 - progdistribuee.txt" };
 		return listFileFromServer;
 	}
 
+	public String getServerIp() {
+		return serverIp;
+	}
 	//
 
 }
