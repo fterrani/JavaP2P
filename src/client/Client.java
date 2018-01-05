@@ -18,9 +18,8 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.Observable;
 import java.util.Observer;
-import java.util.Scanner;
 
-public class Client extends Observable
+public class Client extends Observable 
 {
 	// port for connexion to server
 	private int port1 = 50000 ;
@@ -40,6 +39,7 @@ public class Client extends Observable
 	private File shareFolder;
 	//private File[] contenuDossier;
 	private String givenIp;
+	
 	
 	// constructeur sans argument qui crée un dossier au lancement
 	public Client() {
@@ -68,7 +68,7 @@ public class Client extends Observable
 			shareFolder = file;
 		else
 			initFolder();
-		
+
 	}	
 	
 	private void initFolder() {
