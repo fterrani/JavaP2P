@@ -60,9 +60,6 @@ public class Client
 				//ClientFrame c = new ClientFrame(cl);
 				InetAddress ia = InetAddress.getByName("127.0.0.1");
 				
-			
-				
-				
 				
 				
 			} catch (IOException e) {
