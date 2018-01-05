@@ -14,7 +14,9 @@ import java.util.Observable;
 import java.util.Observer;
 import java.util.Set;
 
-public class ClientInfo extends Observable
+import common.ConvenienceObservable;
+
+public class ClientInfo extends ConvenienceObservable
 {
 	private InetAddress ip;
 	private int port;
@@ -27,18 +29,6 @@ public class ClientInfo extends Observable
 		this.port = port;
 		this.id = -1;
 		this.fileList = new HashSet<>();
-	}
-	
-	public void addObserver( Observer o )
-	{
-		super.addObserver( o );
-		o.update( this, null );
-	}
-	
-	public void changeAndNotify()
-	{
-		setChanged();
-		notifyObservers();
 	}
 
 	public InetAddress getIp()

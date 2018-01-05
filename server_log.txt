@@ -1,26 +1,52 @@
-2018-01-05 00:35:40.303 INFO Server is starting...
-2018-01-05 00:35:40.310 INFO Listening on 127.0.0.1:50000
-2018-01-05 00:35:43.652 INFO Initializing a new client session with 127.0.0.1:59766
-2018-01-05 00:35:43.656 INFO Unregistered client (127.0.0.1:59766): Socket ready to be used.
-2018-01-05 00:35:43.659 INFO Client 1 (127.0.0.1:59766): register => IP (127.0.0.1) has been registered with the following ID: 1
+2018-01-05 10:01:11.430 INFO Server is starting...
+2018-01-05 10:01:11.437 INFO Listening on 127.0.0.1:50000
+2018-01-05 10:01:22.593 INFO Initializing a new client session with 127.0.0.1:60153
+2018-01-05 10:01:22.599 INFO Unregistered client (127.0.0.1:60153): Socket ready to be used.
+2018-01-05 10:01:22.601 INFO Client 1 (127.0.0.1:60153): register => IP (127.0.0.1) has been registered with the following ID: 1
 
-2018-01-05 00:35:43.660 INFO Client 1 (127.0.0.1:59766): sharelist => Sharelist of the client has been updated.
-2018-01-05 00:35:43.662 INFO Client 1 (127.0.0.1:59766): getfilelist => Current server sharelist was sent to the client.
-2018-01-05 00:36:13.666 WARNING Client 1 (127.0.0.1:59766): Timeout occured. Too much time without receiving a command.
-2018-01-05 00:36:13.668 INFO Client 1 (127.0.0.1:59766): Socket closed.
-2018-01-05 00:37:29.232 INFO Server is starting...
-2018-01-05 00:37:29.252 INFO Listening on 127.0.0.1:50000
-2018-01-05 00:37:39.230 INFO Server is starting...
-2018-01-05 00:37:39.239 INFO Listening on 127.0.0.1:50000
-2018-01-05 00:37:55.370 INFO Server is starting...
-2018-01-05 00:37:55.380 INFO Listening on 127.0.0.1:50000
-2018-01-05 00:38:36.545 INFO Server is starting...
-2018-01-05 00:38:36.560 INFO Listening on 127.0.0.1:50000
-2018-01-05 00:40:57.876 INFO Server is starting...
-2018-01-05 00:40:57.888 INFO Listening on 127.0.0.1:50000
-2018-01-05 00:41:25.119 INFO Server is starting...
-2018-01-05 00:41:25.139 INFO Listening on 127.0.0.1:50000
-2018-01-05 00:41:34.451 INFO Server is starting...
-2018-01-05 00:41:34.460 INFO Listening on 127.0.0.1:50000
-2018-01-05 00:41:45.953 INFO Server is starting...
-2018-01-05 00:41:45.965 INFO Listening on 127.0.0.1:50000
+2018-01-05 10:01:22.603 INFO Client 1 (127.0.0.1:60153): sharelist => Sharelist of the client has been updated.
+2018-01-05 10:01:22.605 INFO Client 1 (127.0.0.1:60153): getfilelist => Current server sharelist was sent to the client.
+2018-01-05 10:01:52.607 WARNING Client 1 (127.0.0.1:60153): Timeout occured. Too much time without receiving a command.
+2018-01-05 10:01:52.610 INFO Client 1 (127.0.0.1:60153): Socket closed.
+2018-01-05 10:03:04.598 INFO Server is starting...
+2018-01-05 10:03:04.604 INFO Listening on 127.0.0.1:50000
+2018-01-05 10:03:10.440 INFO Initializing a new client session with 127.0.0.1:60190
+2018-01-05 10:03:10.446 INFO Unregistered client (127.0.0.1:60190): Socket ready to be used.
+2018-01-05 10:03:10.450 INFO Client 1 (127.0.0.1:60190): register => IP (127.0.0.1) has been registered with the following ID: 1
+
+2018-01-05 10:03:10.451 INFO Client 1 (127.0.0.1:60190): sharelist => Sharelist of the client has been updated.
+2018-01-05 10:03:10.453 INFO Client 1 (127.0.0.1:60190): getfilelist => Current server sharelist was sent to the client.
+2018-01-05 10:03:40.454 WARNING Client 1 (127.0.0.1:60190): Timeout occured. Too much time without receiving a command.
+2018-01-05 10:03:40.455 INFO Client 1 (127.0.0.1:60190): Socket closed.
+2018-01-05 10:20:02.493 INFO Server is starting...
+2018-01-05 10:20:02.499 INFO Listening on 127.0.0.1:50000
+2018-01-05 10:20:09.134 INFO Initializing a new client session with 127.0.0.1:60371
+2018-01-05 10:20:09.143 INFO Unregistered client (127.0.0.1:60371): Socket ready to be used.
+2018-01-05 10:20:09.147 INFO Client 1 (127.0.0.1:60371): register => IP (127.0.0.1) has been registered with the following ID: 1
+
+2018-01-05 10:20:09.149 INFO Client 1 (127.0.0.1:60371): sharelist => Sharelist of the client has been updated.
+2018-01-05 10:20:09.150 INFO Client 1 (127.0.0.1:60371): getfilelist => Current server sharelist was sent to the client.
+2018-01-05 10:38:17.872 INFO Server is starting...
+2018-01-05 10:38:17.878 INFO Listening on 127.0.0.1:50000
+2018-01-05 10:40:06.655 INFO Server is starting...
+2018-01-05 10:40:06.674 INFO Listening on 127.0.0.1:50000
+2018-01-05 10:40:12.719 INFO Initializing a new client session with 127.0.0.1:60536
+2018-01-05 10:40:12.730 INFO Unregistered client (127.0.0.1:60536): Socket ready to be used.
+2018-01-05 10:40:12.742 INFO Client 1 (127.0.0.1:60536): register => IP (127.0.0.1) has been registered with the following ID: 1
+
+2018-01-05 10:40:12.748 INFO Client 1 (127.0.0.1:60536): sharelist => Sharelist of the client has been updated.
+2018-01-05 10:40:12.753 INFO Client 1 (127.0.0.1:60536): getfilelist => Current server sharelist was sent to the client.
+2018-01-05 10:40:22.757 WARNING Client 1 (127.0.0.1:60536): Timeout occured. Too much time without receiving a command.
+2018-01-05 10:40:22.759 INFO Client 1 (127.0.0.1:60536): Socket closed.
+2018-01-05 10:40:22.760 INFO Client 1 (127.0.0.1:60536): Session removed from session list.
+2018-01-05 11:26:29.304 INFO Server is starting...
+2018-01-05 11:26:29.311 INFO Listening on 127.0.0.1:50000
+2018-01-05 11:26:34.4 INFO Initializing a new client session with 127.0.0.1:60884
+2018-01-05 11:26:34.9 INFO Unregistered client (127.0.0.1:60884): Socket ready to be used.
+2018-01-05 11:26:34.13 INFO Client 1 (127.0.0.1:60884): register => IP (127.0.0.1) has been registered with the following ID: 1
+
+2018-01-05 11:26:34.16 INFO Client 1 (127.0.0.1:60884): sharelist => Sharelist of the client has been updated.
+2018-01-05 11:26:34.18 INFO Client 1 (127.0.0.1:60884): getfilelist => Current server sharelist was sent to the client.
+2018-01-05 11:26:44.18 WARNING Client 1 (127.0.0.1:60884): Timeout occured. Too much time without receiving a command.
+2018-01-05 11:26:44.20 INFO Client 1 (127.0.0.1:60884): Socket closed.
+2018-01-05 11:26:44.21 INFO Client 1 (127.0.0.1:60884): Session removed from session list.

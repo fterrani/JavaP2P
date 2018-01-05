@@ -1,40 +1,37 @@
 package server;
 
-import java.io.ByteArrayOutputStream;
-import java.io.PrintStream;
 import java.text.SimpleDateFormat;
 import java.util.logging.Formatter;
 import java.util.logging.LogRecord;
 
 public class CustomFormatter extends Formatter
 {
-	private SimpleDateFormat logTimeFormat;
+	private static SimpleDateFormat logTimeFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.S");
 	
 	public CustomFormatter()
 	{
-		logTimeFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.S");
+		super();
 	}
 	
 	public String format( LogRecord record )
 	{
-		// Objet pour assembler des chaînes de caractères
 		StringBuffer sb = new StringBuffer("");
 		
-		// Ajout de la date au log
+		// Appends datetime
 		sb.append( logTimeFormat.format( record.getMillis() ) );
 		
-		// Ajout de la classe et de la méthode qui a demandé le log
+		// Appends class and method names
 		// sb.append( "; " );
 		// sb.append( record.getSourceClassName() );
 		// sb.append( "." );
 		// sb.append( record.getSourceMethodName() );
 		// sb.append( "(); " );
 		
-		// Ajout du niveau de sévérité de l'événement
+		// Appends log level
 		sb.append( " " );
 		sb.append( record.getLevel().getName() );
 		
-		// Ajout du message de l'événement
+		// Appends message
 		sb.append( " " );
 		sb.append( record.getMessage() );
 		

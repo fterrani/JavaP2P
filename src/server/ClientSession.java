@@ -109,7 +109,7 @@ public class ClientSession implements Runnable
 			return;
 		}
 		
-		int id = server.getNextClientId();
+		int id = server.getModel().getNextClientId();
 		clientInfo.setId( id );
 		
 		sendTextData( Integer.toString(id) );
@@ -151,7 +151,7 @@ public class ClientSession implements Runnable
 			return;
 		}
 		
-		String[][] filelist = server.getFilelist();
+		String[][] filelist = server.getModel().getFilelist();
 		
 		StringBuffer sb = new StringBuffer("");
 		
@@ -192,7 +192,7 @@ public class ClientSession implements Runnable
 			return;
 		}
 		
-		InetAddress ip = server.getClientIp(clientId);
+		InetAddress ip = server.getModel().getClientIp(clientId);
 		
 		if ( ip == null )
 		{
@@ -295,7 +295,7 @@ public class ClientSession implements Runnable
 			
 			if (clientQuit)
 			{
-				log( Level.INFO, "Session ended gracefully." );
+				log( Level.INFO, "Session ending gracefully..." );
 			}
 		}
 		
@@ -306,11 +306,17 @@ public class ClientSession implements Runnable
 		
 		
 		// If we get here, the client session has ended
-		try {
+		try
+		{
+			// Closes the socket
 			socket.close();
 			log( Level.INFO, "Socket closed." );
 		}
 		catch( IOException ioe ) {}
+		
+		// Removes this client session from the list
+		server.getModel().removeClientSession( this );
+		log( Level.INFO, "Session removed from session list." );
 	}
 
 	public ClientInfo getClientInfo()

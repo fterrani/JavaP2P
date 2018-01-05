@@ -45,31 +45,29 @@ public class ShareServerFrame extends JFrame implements Observer
 	private JPanel filesPanel;
 	private JPanel logPanel;
 	
-	private JTable logTable;
-	private DefaultTableModel logModel;
-	private TableHandler logTableHandler;
+	private LogTable logTable;
 	
 	private JTable filesTable;
 	private DefaultTableModel filesModel;
+	private String[] filesColumns;
 	
 	
 	public ShareServerFrame( ShareServer _server )
 	{
 		server = _server;
-		server.getModel().addObserver( this );
 		
-		logModel = new DefaultTableModel( new String[] {"Date and time", "Type", "Message"}, 0 );
-		logTableHandler = new TableHandler( logModel );
 		
-		// This will display the server's logs in a table
-		server.getLogger().addHandler( logTableHandler );
-		logTable = new JTable( logModel );
-		logTable.setFont( logTable.getFont().deriveFont( 16f ) );
-		logTable.setRowHeight( logTable.getFont().getSize() + 6 );
-		logTable.setDefaultRenderer( Object.class, new LogTableCellRenderer() );
 		
-		filesModel = new DefaultTableModel( new String[] {"Client ID", "Client IP", "File name"}, 0 );
+		logTable = new LogTable();
+		makeTableFontBigger( logTable.getTable() );
+		
+		// This will display the server's logs in the log table
+		server.getLogger().addHandler( logTable.getHandler() );
+		
+		filesColumns = new String[] {"Client ID", "Client IP", "File name"};
+		filesModel = new DefaultTableModel( filesColumns, 0 );
 		filesTable = new JTable( filesModel );
+		makeTableFontBigger( filesTable );
 		
 		filesPanel = new JPanel();
 		filesPanel.setBorder( BorderFactory.createEmptyBorder(20, 20, 20, 20) );
@@ -79,7 +77,7 @@ public class ShareServerFrame extends JFrame implements Observer
 		logPanel = new JPanel();
 		logPanel.setBorder( BorderFactory.createEmptyBorder(20, 20, 20, 20) );
 		logPanel.setLayout( new BorderLayout() );
-		logPanel.add( new JScrollPane( logTable ), BorderLayout.CENTER );
+		logPanel.add( new JScrollPane( logTable.getTable() ), BorderLayout.CENTER );
 		
 		
 		tabs = new JTabbedPane();
@@ -89,11 +87,21 @@ public class ShareServerFrame extends JFrame implements Observer
 		
 		add( tabs, BorderLayout.CENTER );
 		
+		
+		// We must observe here to make sure all variables are ready to be used
+		server.getModel().addObserver( this );
+		
 		setTitle("Server");
 		setDefaultCloseOperation( EXIT_ON_CLOSE );
 		setPreferredSize( new Dimension(1000, 600) );
 		pack();
 		setLocationRelativeTo( null );
+	}
+	
+	private void makeTableFontBigger( JTable table )
+	{
+		table.setFont( table.getFont().deriveFont( 16f ) );
+		table.setRowHeight( table.getFont().getSize() + 6 );
 	}
 
 	public void update( Observable o, Object arg )
@@ -103,45 +111,20 @@ public class ShareServerFrame extends JFrame implements Observer
 			ShareServerModel model = (ShareServerModel) o;
 			
 			// update the shared files list !!
+			String[][] fileList = model.getFilelist();
+			
+			for (int i = 0; i < fileList.length; i++)
+			{
+				fileList[i] = new String[] {
+					fileList[i][0],
+					server.getModel().getClientIp( Integer.parseInt(fileList[i][0]) ).getHostAddress(),
+					fileList[i][1]
+				};
+			}
+			
+			filesModel.setDataVector( fileList, filesColumns );
 		}
 	}
 	
-	private class TableHandler extends Handler
-	{
-		private SimpleDateFormat logTimeFormat;
-		private DefaultTableModel model;
-		
-		public TableHandler( DefaultTableModel _model )
-		{
-			logTimeFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.S");
-			model = _model;
-		}
-		
-		public void close() throws SecurityException
-		{
-		}
-
-		public void flush()
-		{
-		}
-
-		public void publish( LogRecord record )
-		{
-			String type = "????";
-			
-			if ( record.getLevel() == Level.INFO )
-				type = "INFO";
-			else if ( record.getLevel() == Level.WARNING )
-				type = "WARN";
-			else if ( record.getLevel() == Level.SEVERE )
-				type = "EROR";
-			
-			model.addRow( new String[]
-			{
-				logTimeFormat.format( new Date(record.getMillis()) ),
-				type,
-				record.getMessage()
-			});
-		}
-	}
+	
 }

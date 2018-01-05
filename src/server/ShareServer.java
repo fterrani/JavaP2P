@@ -21,10 +21,12 @@ import java.util.Observer;
 import java.util.Set;
 import java.util.logging.Logger;
 
+import common.AbstractServer;
+
 public class ShareServer extends AbstractServer
 {
 	public static final int PORT_DEFAULT = 50000;
-	public static final int DEFAULT_TIMEOUT = 30; // in seconds
+	public static final int DEFAULT_TIMEOUT = 10; // in seconds
 	
 	private ShareServerModel model;
 	private Logger logger;
@@ -94,7 +96,7 @@ public class ShareServer extends AbstractServer
 		return cs;
 	}
 	
-	public int getNextClientId()
+	/*public int getNextClientId()
 	{
 		return model.getNextClientId();
 	}
@@ -138,5 +140,5 @@ public class ShareServer extends AbstractServer
 		}
 		
 		return list.toArray( new String[0][]);
-	}
+	}*/
 }

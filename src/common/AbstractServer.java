@@ -5,7 +5,7 @@ Author: Fabien
 Date of creation: 4 janv. 2018
  */
 
-package server;
+package common;
 
 import java.io.IOException;
 import java.net.InetAddress;
