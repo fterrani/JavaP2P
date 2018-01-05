@@ -34,6 +34,13 @@ public class Client extends Observable
 	private BufferedReader bufferedReader;
 	private PrintWriter printWriter;
 	
+	
+	//private ShareServerSession sss;
+	//private PeerServer peerServer; // extends AbstractServer
+	//private PeerClient peerClient; // méthode downloadFile( InetAddress ip, String fileToDownload )
+	// Créer un PeerClientModel extends Observable
+	
+	
 	private int clientID =1;
 	private String[] listFileFromServer = new String[0];
 	private String[] response;

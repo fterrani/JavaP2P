@@ -8,17 +8,8 @@ Date of creation: 14 déc. 2017
 package server;
 
 import java.io.IOException;
-import java.io.ObjectInputStream;
 import java.net.InetAddress;
-import java.net.ServerSocket;
 import java.net.Socket;
-import java.net.UnknownHostException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.Observer;
-import java.util.Set;
 import java.util.logging.Logger;
 
 import common.AbstractServer;
@@ -95,50 +86,4 @@ public class ShareServer extends AbstractServer
 		
 		return cs;
 	}
-	
-	/*public int getNextClientId()
-	{
-		return model.getNextClientId();
-	}
-	
-	public InetAddress getClientIp( int clientId )
-	{
-		InetAddress ip = null;
-		
-		Iterator<ClientInfo> i = model.getInfosIterator();
-		ClientInfo info;
-		
-		while ( i.hasNext() && ip == null )
-		{
-			info = i.next();
-			
-			if ( info.getId() == clientId )
-			{
-				ip = info.getIp();
-			}
-		}
-		
-		return ip;
-	}
-	
-	public String[][] getFilelist()
-	{
-		ArrayList<String[]> list = new ArrayList<>();
-		
-		Iterator<ClientInfo> i = model.getInfosIterator();
-		ClientInfo ci;
-		
-		while( i.hasNext() )
-		{
-			ci = i.next();
-			String[] files = ci.getSharedFiles();
-			
-			for (int j = 0; j < files.length; j++)
-			{
-				list.add( new String[] { Integer.toString( ci.getId() ), files[j] } );
-			}
-		}
-		
-		return list.toArray( new String[0][]);
-	}*/
 }
