@@ -19,7 +19,7 @@ import java.net.Socket;
 import java.util.Observable;
 import java.util.Observer;
 
-public class ShareServerSession extends Observable {
+public class ShareClient extends Observable {
 
 	// port for connexion to server
 	public static final int PORT_DEFAULT = 50000;
@@ -34,12 +34,12 @@ public class ShareServerSession extends Observable {
 	private String givenIp;
 
 	// constructeur sans argument qui crée un dossier au lancement
-	public ShareServerSession() {
+	public ShareClient() {
 		initFolder();
 	}
 
 	// constructeur avec argument qui récupère le dossier déjà existant
-	public ShareServerSession(File file) {
+	public ShareClient(File file) {
 		if (file.exists())
 			shareFolder = file;
 		else

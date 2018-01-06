@@ -21,7 +21,7 @@ import javax.swing.*;
 import client.Client;
 import client.PeerClient;
 import client.PeerServer;
-import client.ShareServerSession;
+import client.ShareClient;
 
 public class ClientFrame extends JFrame implements Observer {
 
@@ -52,7 +52,7 @@ public class ClientFrame extends JFrame implements Observer {
 	private JPanel pnInfo = new JPanel();
 	private JLabel statut = new JLabel("bonjour");
 	
-	private ShareServerSession sss;
+	private ShareClient sss;
 	private PeerServer ps;
 	private PeerClient pc;
 	
@@ -148,9 +148,9 @@ public class ClientFrame extends JFrame implements Observer {
 
 	public void update(Observable o, Object arg)
 	{
-		if ( o instanceof ShareServerSession )
+		if ( o instanceof ShareClient )
 		{
-			ShareServerSession Ss = (ShareServerSession) o;
+			ShareClient Ss = (ShareClient) o;
 			
 			// Update the GUI because the Client changed:
 			// ID, IP, sharefolder, server filelist, ...

@@ -17,12 +17,12 @@ public class Client
 {
 	private InetAddress ip;
 	private int port;
-	private ShareServerSession sss ;
+	private ShareClient sc ;
 	private PeerServer ps ;
 	private PeerClient pc ;
 	
-	public ShareServerSession getSss() {
-		return sss;
+	public ShareClient getSss() {
+		return sc;
 	}
 
 	public PeerServer getPs() {
@@ -38,7 +38,7 @@ public class Client
 		
 		this.ip = ip;
 		port = PeerServer.PORT_DEFAULT;
-		sss = new ShareServerSession();
+		sc = new ShareClient();
 		ps = new PeerServer(ip, port);
 		pc = new PeerClient();
 	}

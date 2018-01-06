@@ -17,10 +17,16 @@ public class ConvenienceObservable extends Observable
 		super.addObserver( o );
 		o.update( this, null );
 	}
-	
+
 	protected void changeAndNotify()
 	{
 		setChanged();
 		notifyObservers();
+	}
+	
+	protected void changeAndNotify( Object obj )
+	{
+		setChanged();
+		notifyObservers( obj );
 	}
 }
