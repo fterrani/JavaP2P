@@ -19,7 +19,7 @@ import java.net.Socket;
 import java.util.Observable;
 import java.util.Observer;
 
-public class ShareClient extends Observable {
+public class ShareClient {
 
 	// port for connexion to server
 	public static final int PORT_DEFAULT = 50000;
@@ -31,7 +31,6 @@ public class ShareClient extends Observable {
 	private String givenIp;
 	private ClientModel model;
 	private File shareFolder;
-	private String[] listFileFromServer;
 	
 
 	// constructeur sans argument qui crée un dossier au lancement
@@ -39,7 +38,6 @@ public class ShareClient extends Observable {
 		this.model = model;
 		this.serverIP= serverIP;
 		shareFolder= model.getShareFolder();
-		listFileFromServer = model.getListFileFromServer();
 		initFolder();
 		
 	}
@@ -68,8 +66,6 @@ public class ShareClient extends Observable {
 
 		System.out.println(shareFolder.getName());
 		System.out.println(shareFolder.listFiles().length);
-
-		changeAndNotifyObservers();
 	}
 
 	/* Connexion and retrieving file list to/from server */
@@ -90,12 +86,12 @@ public class ShareClient extends Observable {
 			getfilelistFromServer();
 		
 			// close connection to server
-			try {
+			/*try {
 				clientSocket.close();
 			} catch (IOException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
-			}
+			}*/
 		}
 	}
 
@@ -121,31 +117,29 @@ public class ShareClient extends Observable {
 		return parts;
 	}
 	
-	private void getfilelistFromServer() {
+	public void getfilelistFromServer() {
 
 		printWriter.println("getFileList");
 		printWriter.flush();
 
 		try {
+			String[] newList = new String[0];
+			
 			response = readMessage();
 
 			System.out.println(response[0] + " >>> '" + response[1] + "'");
 
-			if (response[1].equals("")) {
-				listFileFromServer = new String[0];
-			}
-
-			else {
+			if (!response[1].equals("")) {
 				String[] strFiles = response[1].split(";");
-				listFileFromServer = new String[strFiles.length];
+				newList = new String[strFiles.length];
 
 				for (int i = 0; i < strFiles.length; i++) {
 					String[] parts = strFiles[i].split(":");
-					listFileFromServer[i] = parts[0] + "\t" + parts[1];
+					newList[i] = parts[0] + "\t" + parts[1];
 				}
 			}
-
-			changeAndNotifyObservers();
+			
+			model.setListFileFromServer( newList );
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -163,7 +157,7 @@ public class ShareClient extends Observable {
 		File[] contenuDossier = shareFolder.listFiles();
 
 		for (int j = 0; j < contenuDossier.length; j++) {
-			listFileToShare += contenuDossier[j];
+			listFileToShare += contenuDossier[j].getName();
 		}
 
 		printWriter.println("shareList" + " " + listFileToShare);
@@ -196,8 +190,7 @@ public class ShareClient extends Observable {
 			response = readMessage();
 
 			givenIp = response[1];
-
-			changeAndNotifyObservers();
+			
 			return givenIp;
 
 		} catch (IOException e) {
@@ -205,19 +198,6 @@ public class ShareClient extends Observable {
 			e.printStackTrace();
 		}
 		return null;
-	}
-
-	public void addObserver(Observer o) {
-		super.addObserver(o);
-
-		// We only warn the observer that has just been added
-		o.update(this, null);
-	}
-
-	// Marks the model as changed and notifies all observers
-	private void changeAndNotifyObservers() {
-		setChanged();
-		notifyObservers();
 	}
 
 	// getter and setter
@@ -233,7 +213,7 @@ public class ShareClient extends Observable {
 	}
 
 	public String[] getDisplayedList() {
-		return listFileFromServer;
+		return model.getListFileFromServer();
 	}
 
 	public ClientModel getModel() {

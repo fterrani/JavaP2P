@@ -17,6 +17,8 @@ import java.awt.event.ActionListener;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Observable;
 import java.util.Observer;
 
@@ -28,6 +30,7 @@ import client.ClientModel;
 import client.CustomProgressBar;
 import client.DemoProgressBar2;
 import client.PeerClient;
+import client.PeerDownload;
 import client.PeerServer;
 import client.ShareClient;
 
@@ -58,7 +61,7 @@ public class ClientFrame extends JFrame implements Observer, ActionListener {
 
 	// private JTable jtOhterClients = new JTable();
 	private String[] listFiles;
-	private JList jtOtherClients;
+	private JList<String> jtOtherClients;
 	private JScrollPane jsOtherClients;
 	private JButton jbdownload = new JButton("Download");
 
@@ -73,7 +76,8 @@ public class ClientFrame extends JFrame implements Observer, ActionListener {
 	private Client cl;
 
 	// panel sud
-	private ArrayList <CustomProgressBar> bars ;
+	private ArrayList<CustomProgressBar> bars ;
+	private Map<PeerDownload,CustomProgressBar> downloadComponents = new HashMap<>();
 	private JPanel pncustomProgressBar = new JPanel();
 
 	public ClientFrame(Client cl) {
@@ -82,8 +86,7 @@ public class ClientFrame extends JFrame implements Observer, ActionListener {
 		ps = cl.getPs();
 		pc = cl.getPc();
 		cm = cl.getModel();
-		cm.addObserver(this);
-
+		
 		setTitle("Interface principale");
 		setDefaultCloseOperation(EXIT_ON_CLOSE);
 		setPreferredSize(new Dimension(1500, 1000));
@@ -92,7 +95,8 @@ public class ClientFrame extends JFrame implements Observer, ActionListener {
 		addAllComponents();
 
 		pack();
-
+		
+		cm.addObserver(this);
 	}
 
 	private static void biggerFont(JComponent c) {
@@ -102,7 +106,8 @@ public class ClientFrame extends JFrame implements Observer, ActionListener {
 	private void addAllComponents() {
 
 		// Panel nord
-		clientID = new JLabel("Client " + cm.getClientID() + " connected to " + sss.getServerIP());
+		clientID = new JLabel();
+		updateClientID();
 		biggerFont(clientID);
 		pnNord.setLayout(new BorderLayout());
 		pnNord.setBorder(BorderFactory.createMatteBorder(0, 0, 2, 0, Color.BLACK));
@@ -128,8 +133,7 @@ public class ClientFrame extends JFrame implements Observer, ActionListener {
 
 		// Panel otherclient à droite
 		listFiles = sss.getDisplayedList();
-		listFiles = new String[] { "3" + "\t" + "hello.txt", "hello.txt", "hello.txt", "hello.txt" };
-		jtOtherClients = new JList(listFiles);
+		jtOtherClients = new JList<String>(listFiles);
 		jsOtherClients = new JScrollPane(jtOtherClients);
 		otherClient.setLayout(new BorderLayout());
 		otherClient.add(jlOtherClients, BorderLayout.NORTH);
@@ -143,6 +147,7 @@ public class ClientFrame extends JFrame implements Observer, ActionListener {
 		pnCenter.add(otherClient);
 
 		jbdownload.addActionListener(this);
+		jbMainClient.addActionListener(this);
 
 		// panel sud
 		jsCurrentDownload = new JScrollPane(currentDownload);
@@ -154,7 +159,7 @@ public class ClientFrame extends JFrame implements Observer, ActionListener {
 
 		pncustomProgressBar.setLayout(new BoxLayout(pncustomProgressBar, BoxLayout.Y_AXIS));
 		pncustomProgressBar.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
-
+		pnSud.add(pncustomProgressBar, BorderLayout.CENTER);
 
 		add(pnNord, BorderLayout.NORTH);
 		add(pnCenter, BorderLayout.CENTER);
@@ -162,67 +167,86 @@ public class ClientFrame extends JFrame implements Observer, ActionListener {
 
 	}
 
-	public String randName() {
-		String[] names = new String[] { "a.txt", "lolcat.png", "cool_super_amazing_music.mp3", "great_movie.avi" };
-
-		return names[(int) (Math.random() * names.length)];
-	}
-
 	// methode from Observer Interface
-	@Override
-	public void update(Observable o, Object arg) {
-		if (o == cm) {
-			updateStatus();
-
-		}
-
-	}
-
-	public void updateStatus() {
-		// connectedTo.setText(
-		// "Client " + cm.getClientID() + " connected to " + sss.getServerIP()
-		// );
-	}
-
-	@Override
-	public void actionPerformed(ActionEvent e) {
-		String string = (String) jtOtherClients.getSelectedValue();
-		System.out.println(jtOtherClients.getSelectedValue());
-		String[] parts = string.split("\t");
-		int id = Integer.parseInt(parts[0]);
-		String filename = parts[1];
-		System.out.println(parts[0] + "\t"  + parts[1]);
-
-		try {
-			InetAddress ip = InetAddress.getByName(sss.getIP(2));
-			pc.askForFile(ip, filename);
-			System.out.println("ask for file");
-		} catch (UnknownHostException e1) {
-			// TODO Auto-generated catch block
-			e1.printStackTrace();
+	public void update( Observable o, Object arg )
+	{
+		if ( arg instanceof PeerDownload )
+		{
+			PeerDownload download = (PeerDownload) arg;
+			
+			if ( downloadComponents.containsKey(download) )
+			{
+				int progress = (int) Math.round( download.getProgress() * 100f );
+				downloadComponents.get( download ).setValue( progress );
+			}
+			
+			else
+			{
+				CustomProgressBar bar = new CustomProgressBar( download.getFileName(), 0 );
+				
+				bar.setBorder(BorderFactory.createEmptyBorder(12, 0, 0, 0));
+				
+				// Association de la barre au téléchargement
+				downloadComponents.put( download, bar );
+				
+				// Ajout de la barre à l'interface
+				pncustomProgressBar.add( bar );
+			}
 		}
 		
-		bars.add(new CustomProgressBar(filename, 0));
-
-		for(int i = 0; i<bars.size();i++)
-        {
-			pncustomProgressBar.add(bars.get(i));
-			bars.get(i).setBorder(BorderFactory.createEmptyBorder(12, 0, 0, 0));
-        }
-
-			pnSud.add(pncustomProgressBar, BorderLayout.CENTER);
+		else if ( arg instanceof String )
+		{
+			String s = arg.toString();
+			
+			if ( s.equals("server_filelist") )
+			{
+				String[] serverList = cl.getModel().getListFileFromServer();
+				
+				jtOtherClients.setListData( serverList );
+			}
+		}
 		
+		updateClientID();
+	}
 
-	// public void update(Observable o, Object arg)
-	// {
-	// if ( o instanceof ShareClient )
-	// {
-	// ShareClient Ss = (ShareClient) o;
-	//
-	// // Update the GUI because the Client changed:
-	// // ID, IP, sharefolder, server filelist, ...
-	// }
-	// }
-}
+	public void updateClientID()
+	{
+		String status = "Connecting to server...";
+		
+		if ( cm.getClientID() > 0 )
+		{
+			status = "Client " + cm.getClientID() + " connected to " + sss.getServerIP();
+		}
+		
+		clientID.setText( status );
+	}
 
+	public void actionPerformed(ActionEvent e)
+	{
+		if ( e.getSource() == jbdownload )
+		{
+			try
+			{
+				String string = jtOtherClients.getSelectedValue();
+				System.out.println(jtOtherClients.getSelectedValue());
+				String[] parts = string.split("\t");
+				int id = Integer.parseInt(parts[0]);
+				String filename = parts[1];
+				System.out.println(parts[0] + "\t"  + parts[1]);
+				
+				
+				InetAddress ip = InetAddress.getByName( sss.getIP( id ) );
+				pc.askForFile(ip, filename);
+			}
+			catch (UnknownHostException e1)
+			{
+				e1.printStackTrace();
+			}
+		}
+		
+		else if( e.getSource() == jbMainClient )
+		{
+			cl.getSss().getfilelistFromServer();
+		}
+	}
 }

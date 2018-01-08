@@ -52,31 +52,4 @@ public class Client
 		ps = new PeerServer(ip, port, model);
 		pc = new PeerClient(model);
 	}
-
-	
-	public static void main (String[] args) {
-		InetAddress ip;
-		InetAddress serverIP;
-		try {
-			ip = InetAddress.getByName("127.0.0.1");
-			serverIP = InetAddress.getByName("127.0.0.1");
-		
-				//creating the client 
-				Client cl = new Client(ip,serverIP);
-			
-				// Creating the frame 
-				ClientFrame c = new ClientFrame(cl);
-				
-				// Shows the frame and launches the Peerserver
-				c.setVisible( true );
-				cl.getPs().launch();
-				
-				
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-		
-		}
-		
-	}
+}

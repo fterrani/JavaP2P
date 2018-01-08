@@ -8,9 +8,13 @@ Date of creation: 5 janv. 2018
 
 package client;
 
+import java.io.BufferedOutputStream;
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.PrintWriter;
 import java.net.InetAddress;
 import java.net.Socket;
 
@@ -33,60 +37,48 @@ public class PeerClient {
 	// que l'utilisateur veut télécharger un fichier.
 	// Client appelerait ensuite peerClient.askForFile( ... )
 	
-	public void askForFile( InetAddress ip, String filename )
+	public PeerDownload askForFile( InetAddress ip, String filename )
 	{
+		System.out.println("ask for file");
 		
-		try {
-			Socket peerSocket = connectToClient(ip.getHostAddress(), model.PORT_DEFAULT);
-		
-		// Contacte un autre peer avec un socket et envoie getfile nomdufichier.txt
-		// Récupère la taille du fichier à télécharger
-		File fileToDownload = getFile(filename);
-		int size = (int) fileToDownload.length();
-		
-		startNewDownload(peerSocket,fileToDownload, size );
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-	}
-	
-	private File getFile(String filename) {
-		File f = null ;
-		File [] files = model.getShareFolder().listFiles();
-		
-		for (int i = 0; i < files.length; i++) {
-			if (filename == files[i].getName())
-				return files[i];
-		}
-		
-		return f;
-		
-	}
-	
-	// Socket doit être créé avant, dest est connu grâce à la liste des fichiers partagés,
-	// et filesize a été récupéré de la réponse à la commande getfile
-	public PeerDownload startNewDownload( Socket peerSocket, File dest, int fileSize )
-	{
 		PeerDownload download = null;
 		
 		try
 		{
-			download = new PeerDownload( peerSocket, dest, fileSize );
-			Thread t = new Thread( download );
-			t.start();
-			return download;
+			Socket peerSocket = connectToClient(ip.getHostAddress(), model.PORT_DEFAULT);
+			download = getFile( peerSocket, filename );
+		}
+		catch (Exception e)
+		{
+			e.printStackTrace();
 		}
 		
-		catch (FileNotFoundException e)
-		{
-			// Erreur lors de la création du fichier de destination
-		}
+		return download;
+	}
+	
+	private PeerDownload getFile(Socket socket, String filename) throws IOException
+	{
+		BufferedReader reader = new BufferedReader(
+			new InputStreamReader(
+				socket.getInputStream()
+			)
+		);
 		
-		catch (IOException e)
-		{
-			// Erreur réseau
-		}
+		PrintWriter writer = new PrintWriter(
+			new BufferedOutputStream(
+				socket.getOutputStream()
+			),
+			true // Auto-flushing enabled
+		);
+		
+		writer.println( "getfile " + filename );
+		String line = reader.readLine();
+		int taille = Integer.parseInt( line.split(" ")[1] );
+		
+		PeerDownload download = new PeerDownload( socket, new File(model.getShareFolder(), filename), taille );
+		model.addNewDownload( download );
+		Thread t = new Thread( download );
+		t.start();
 		
 		return download;
 	}

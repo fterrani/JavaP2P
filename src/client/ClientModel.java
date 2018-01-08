@@ -36,7 +36,7 @@ public class ClientModel extends ConvenienceObservable implements Observer
 	
 	// Données liées au serveur de partage (utilisées par ShareClient)
 	private File shareFolder;
-	private int clientID = 1;
+	private int clientID = 0;
 	private String[] listFileFromServer = new String[0];
 	
 	// Données liées au client lorsqu'il partage des fichiers
@@ -50,31 +50,12 @@ public class ClientModel extends ConvenienceObservable implements Observer
 	// Données liées au PeerServer
 	public static final int PORT_DEFAULT = 60000;
 
-	
-	// Un petite exemple avec la méthode qui ajoute un nouveau téléchargement à ceux en cours
-	public void addNewDownload( PeerDownload download )
-	{
-		downloads.add( download );
-		download.addObserver( this );
-		changeAndNotify( "downloads" );
-	}
-	
-
 	public void update( Observable o, Object arg )
 	{
-		if ( o instanceof PeerDownload )
-		{
-			// On passerait la chaîne "downloads" pour avertir
-			// ClientFrame qu'il doît mettre à jour la liste des
-			// téléchargements (la chaîne se trouvera dans le deuxième
-			// paramètre de la méthode update() de ClientFrame)
-			changeAndNotify( "downloads" );
-		}
-		else if ( o instanceof PeerUpload )
-		{
-			changeAndNotify( "uploads" );
-		}
+		// Envoie les PeerDownload et PeerUpload en argument aux observateurs
+		changeAndNotify( o );
 	}
+	
 	//getter and setter
 	public File getShareFolder() {
 		return shareFolder;
@@ -114,8 +95,10 @@ public class ClientModel extends ConvenienceObservable implements Observer
 
 
 
-	public void setListFileFromServer(String[] listFileFromServer) {
+	public void setListFileFromServer(String[] listFileFromServer)
+	{
 		this.listFileFromServer = listFileFromServer;
+		changeAndNotify("server_filelist");
 	}
 
 
@@ -128,26 +111,22 @@ public class ClientModel extends ConvenienceObservable implements Observer
 
 
 
-
-
-	public void setUploads(ArrayList<PeerUpload> uploads) {
-		this.uploads = uploads;
+	public void addNewUpload( PeerUpload upload )
+	{
+		uploads.add( upload );
+		upload.addObserver( this );
+		changeAndNotify( "uploads" );
 	}
-
-
-
-
 
 	public ArrayList<PeerDownload> getDownloads() {
 		return downloads;
 	}
 
-
-
-
-
-	public void setDownloads(ArrayList<PeerDownload> downloads) {
-		this.downloads = downloads;
+	// Un petite exemple avec la méthode qui ajoute un nouveau téléchargement à ceux en cours
+	public void addNewDownload( PeerDownload download )
+	{
+		downloads.add( download );
+		download.addObserver( this );
+		changeAndNotify( "downloads" );
 	}
-
 }

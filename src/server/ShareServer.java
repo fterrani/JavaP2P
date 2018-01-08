@@ -17,7 +17,7 @@ import common.AbstractServer;
 public class ShareServer extends AbstractServer
 {
 	public static final int PORT_DEFAULT = 50000;
-	public static final int DEFAULT_TIMEOUT = 10; // in seconds
+	public static final int DEFAULT_TIMEOUT = 15 * 60; // in seconds
 	
 	private ShareServerModel model;
 	private Logger logger;

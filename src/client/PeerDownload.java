@@ -15,6 +15,8 @@ import java.net.Socket;
 
 public class PeerDownload extends PeerTransfer
 {
+	private String filename;
+	
 	// Les "FileNotFoundException" sone jetées lorsque le programe n'arrive pas à ÉCRIRE dans le fichier
 	// pour une raison quelconque
 	// "IOException" représente les erreurs de transfert du réseau
@@ -26,5 +28,12 @@ public class PeerDownload extends PeerTransfer
 			new FileOutputStream( dest ),
 			fileSize
 		);
+		
+		filename = dest.getName();
+	}
+	
+	public String getFileName()
+	{
+		return filename;
 	}
 }
