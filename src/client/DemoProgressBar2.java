@@ -17,7 +17,6 @@ import java.util.TimerTask;
 
 import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
-import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JProgressBar;
@@ -25,16 +24,14 @@ import javax.swing.JScrollPane;
 import javax.swing.plaf.ProgressBarUI;
 import javax.swing.plaf.basic.BasicProgressBarUI;
 
-public class DemoProgressBar
+public class DemoProgressBar2
 {
-	public static CustomProgressBar[] bars;
+	public CustomProgressBar[] bars;
 	
-	public static void main(String[] args)
+	public DemoProgressBar2 ()
 	{
 		bars = new CustomProgressBar[ 8 ];
-		
-		
-		
+	
 		JPanel p = new JPanel();
 		p.setLayout( new BoxLayout(p, BoxLayout.Y_AXIS) );
 		p.setBorder( BorderFactory.createEmptyBorder(20, 20, 20, 20) );
@@ -49,15 +46,6 @@ public class DemoProgressBar
 			p.add( bars[i] );
 		}
 		
-		JFrame frame = new JFrame();
-		
-		frame.add( new JScrollPane(p), BorderLayout.CENTER );
-		
-		frame.setPreferredSize( new Dimension(800, 600) );
-		frame.pack();
-		frame.setLocationRelativeTo( null );
-		frame.setDefaultCloseOperation( JFrame.EXIT_ON_CLOSE );
-		frame.setVisible( true );
 		
 		Timer t = new Timer();
 		t.schedule(new TimerTask()
@@ -69,7 +57,7 @@ public class DemoProgressBar
 		}, 0, 500 );
 	}
 	
-	public static void randomModel()
+	public  void randomModel()
 	{
 		int n;
 		Random r = new Random();
@@ -83,7 +71,7 @@ public class DemoProgressBar
 		}
 	}
 	
-	public static String randName()
+	public String randName()
 	{
 		String[] names = new String[] {
 			"a.txt",

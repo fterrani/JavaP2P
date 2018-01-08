@@ -23,23 +23,30 @@ public class ShareClient extends Observable {
 
 	// port for connexion to server
 	public static final int PORT_DEFAULT = 50000;
-	private File shareFolder;
-	private int clientID = 1;
-	private String serverIp = "127.0.0.1";
+	private InetAddress serverIP ;
 	private Socket clientSocket;
 	private BufferedReader bufferedReader;
 	private PrintWriter printWriter;
-	private String[] listFileFromServer = new String[0];
 	private String[] response;
 	private String givenIp;
+	private ClientModel model;
+	private File shareFolder;
+	private String[] listFileFromServer;
+	
 
 	// constructeur sans argument qui crée un dossier au lancement
-	public ShareClient() {
+	public ShareClient(ClientModel model, InetAddress serverIP) {
+		this.model = model;
+		this.serverIP= serverIP;
+		shareFolder= model.getShareFolder();
+		listFileFromServer = model.getListFileFromServer();
 		initFolder();
+		
 	}
 
 	// constructeur avec argument qui récupère le dossier déjà existant
-	public ShareClient(File file) {
+	public ShareClient(File file, ClientModel model) {
+		this.model = model;
 		if (file.exists())
 			shareFolder = file;
 		else
@@ -69,9 +76,8 @@ public class ShareClient extends Observable {
 	public void connectToServer() {
 
 		try {
-			System.out.println("Connecting to the server: " + serverIp);
-			InetAddress serverAdress = InetAddress.getByName(serverIp);
-			clientSocket = new Socket(serverAdress, PORT_DEFAULT);
+			System.out.println("Connecting to the server: " + serverIP.getHostName());
+			clientSocket = new Socket(serverIP, PORT_DEFAULT);
 		} catch (IOException e) {
 			System.out.println("Connection impossible, check the server IP or server status");
 		}
@@ -82,9 +88,7 @@ public class ShareClient extends Observable {
 			sendIP();
 			shareFiles();
 			getfilelistFromServer();
-			// givenIp = getIp();
-			// connectToClient(givenIp, port2);
-
+		
 			// close connection to server
 			try {
 				clientSocket.close();
@@ -106,7 +110,6 @@ public class ShareClient extends Observable {
 			e.printStackTrace();
 		}
 	}
-
 
 	private String[] splitMessage( String message )
 	{
@@ -177,7 +180,7 @@ public class ShareClient extends Observable {
 
 			int givenID = Integer.parseInt(response[1]);
 			System.out.println(givenID);
-			setClientID((int) givenID);
+			model.setClientID((int) givenID);
 
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
@@ -185,9 +188,9 @@ public class ShareClient extends Observable {
 		}
 	}
 
-	private String getIP(int id) {
+	public String getIP(int id) {
 		try {
-			printWriter.println("getIp" + " " + 5);
+			printWriter.println("getIp" + " " + id);
 			printWriter.flush();
 
 			response = readMessage();
@@ -219,20 +222,11 @@ public class ShareClient extends Observable {
 
 	// getter and setter
 
-	public int getClientID() {
-		// TODO Auto-generated method stub
-		return clientID;
-	}
-
 	public String getServerIP() {
 		// TODO Auto-generated method stub
-		return serverIp;
+		return serverIP.getHostAddress();
 	}
 
-	public void setClientID(int clientID) {
-		this.clientID = clientID;
-		changeAndNotifyObservers();
-	}
 
 	public String[] getContenuDossier() {
 		return shareFolder.list();
@@ -242,6 +236,12 @@ public class ShareClient extends Observable {
 		return listFileFromServer;
 	}
 
-	//
+	public ClientModel getModel() {
+		return model;
+	}
+
+	public void setModel(ClientModel model) {
+		this.model = model;
+	}
 
 }

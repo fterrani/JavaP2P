@@ -8,25 +8,25 @@ Date of creation: 5 janv. 2018
 
 package client;
 
+import java.io.File;
 import java.io.IOException;
 import java.net.InetAddress;
-import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.Iterator;
 
 import common.AbstractServer;
+import server.ClientInfo;
 
-public class PeerServer extends AbstractServer{
-	
+public class PeerServer extends AbstractServer {
+	private ClientModel model;
+
 	// méthode downloadFile( InetAddress ip, String fileToDownload )
 	// Créer un PeerClientModel extends Observable
-			
 
-	public static final int PORT_DEFAULT = 60000;
 	
-	public PeerServer(InetAddress _ip, int _port) throws IOException {
+	public PeerServer(InetAddress _ip, int _port, ClientModel model) throws IOException {
 		super(_ip, _port);
-		launch();
-		
+		this.model = model;
 		// TODO Auto-generated constructor stub
 	}
 
@@ -36,7 +36,8 @@ public class PeerServer extends AbstractServer{
 		return null;
 	}
 	
-
+	
+	
 	
 	
 	

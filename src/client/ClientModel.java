@@ -7,10 +7,7 @@ Date of creation: 5 janv. 2018
 
 package client;
 
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.PrintWriter;
-import java.net.Socket;
 import java.util.ArrayList;
 import java.util.Observable;
 import java.util.Observer;
@@ -50,20 +47,17 @@ public class ClientModel extends ConvenienceObservable implements Observer
 	// Données liées au client lorsqu'il télécharge des fichiers d'autres clients
 	private ArrayList<PeerDownload> downloads;
 	
-	
-	
+	// Données liées au PeerServer
+	public static final int PORT_DEFAULT = 60000;
+
 	
 	// Un petite exemple avec la méthode qui ajoute un nouveau téléchargement à ceux en cours
-	
 	public void addNewDownload( PeerDownload download )
 	{
 		downloads.add( download );
 		download.addObserver( this );
 		changeAndNotify( "downloads" );
 	}
-	
-	
-	
 	
 
 	public void update( Observable o, Object arg )
@@ -81,4 +75,79 @@ public class ClientModel extends ConvenienceObservable implements Observer
 			changeAndNotify( "uploads" );
 		}
 	}
+	//getter and setter
+	public File getShareFolder() {
+		return shareFolder;
+	}
+
+
+
+	public void setShareFolder(File shareFolder) {
+		this.shareFolder = shareFolder;
+	}
+
+
+
+
+
+	public int getClientID() {
+		return clientID;
+	}
+
+
+
+
+
+	public void setClientID(int clientID) {
+		this.clientID = clientID;
+	}
+
+
+
+
+
+	public String[] getListFileFromServer() {
+		return listFileFromServer;
+	}
+
+
+
+
+
+	public void setListFileFromServer(String[] listFileFromServer) {
+		this.listFileFromServer = listFileFromServer;
+	}
+
+
+
+
+
+	public ArrayList<PeerUpload> getUploads() {
+		return uploads;
+	}
+
+
+
+
+
+	public void setUploads(ArrayList<PeerUpload> uploads) {
+		this.uploads = uploads;
+	}
+
+
+
+
+
+	public ArrayList<PeerDownload> getDownloads() {
+		return downloads;
+	}
+
+
+
+
+
+	public void setDownloads(ArrayList<PeerDownload> downloads) {
+		this.downloads = downloads;
+	}
+
 }

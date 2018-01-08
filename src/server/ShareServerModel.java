@@ -7,6 +7,7 @@ Date of creation: 4 janv. 2018
 
 package server;
 
+import java.io.File;
 import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -87,6 +88,10 @@ public class ShareServerModel extends ConvenienceObservable implements Observer
 		// Calling with -1 will create a list containing all files shared by all clients
 		return getFilelist( -1 );
 	}
+	
+	
+		
+		
 	
 	public String[][] getFilelist( int clientId )
 	{

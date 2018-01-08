@@ -12,148 +12,217 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.GridLayout;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Observable;
 import java.util.Observer;
 
 import javax.swing.*;
+import javax.swing.event.ListSelectionEvent;
 
 import client.Client;
+import client.ClientModel;
+import client.CustomProgressBar;
+import client.DemoProgressBar2;
 import client.PeerClient;
 import client.PeerServer;
 import client.ShareClient;
 
-public class ClientFrame extends JFrame implements Observer {
+public class ClientFrame extends JFrame implements Observer, ActionListener {
+
+	private ClientModel cm;
 
 	private JPanel pnNord = new JPanel();
+	private JPanel pnCenter = new JPanel();
 	private JPanel pnSud = new JPanel();
 
 	// panel mainClient
+
 	private JPanel mainClient = new JPanel();
-	private JLabel jlMainClient ;
-	private JList jltMainClient ;
+	private String[] contenuDossier;
+	private JLabel jlMainClient;
+	private JList jltMainClient;
 	private JScrollPane jsMainClient;
-	private JButton jbMainClient = new JButton("Refresh list ");
+	private JButton jbMainClient = new JButton("Refresh list");
 
 	// panel other Client
 	private JPanel otherClient = new JPanel();
 	private JLabel jlOtherClients = new JLabel("Files available");
-//	private JTable jtOhterClients = new JTable();
-	private JList jtOtherClients ;
-	private JScrollPane jsOtherClients;
-	private JButton jbOtherClients = new JButton("Download");
-	
-	private JList currentDownload = new JList(new String[] { "a", "b", "c", });
-	private JScrollPane jsCurrentDownload;
-	private String[] contenuDossier;
-	private String[] listFiles;
 
-	// panel Info
-	private JPanel pnInfo = new JPanel();
-	private JLabel statut = new JLabel("bonjour");
-	
+	// titel
+	private JLabel connectedTo;
+	private JLabel clientID;
+
+	// private JTable jtOhterClients = new JTable();
+	private String[] listFiles;
+	private JList jtOtherClients;
+	private JScrollPane jsOtherClients;
+	private JButton jbdownload = new JButton("Download");
+
+	private JList currentDownload;
+	private JScrollPane jsCurrentDownload;
+
+	private JLabel jlcurrentDownload = new JLabel("Current downloads");
+
 	private ShareClient sss;
 	private PeerServer ps;
 	private PeerClient pc;
-	
+	private Client cl;
+
+	// panel sud
+	private ArrayList <CustomProgressBar> bars ;
+	private JPanel pncustomProgressBar = new JPanel();
 
 	public ClientFrame(Client cl) {
+		this.cl = cl;
 		sss = cl.getSss();
 		ps = cl.getPs();
 		pc = cl.getPc();
+		cm = cl.getModel();
+		cm.addObserver(this);
 
 		setTitle("Interface principale");
 		setDefaultCloseOperation(EXIT_ON_CLOSE);
-		
 		setPreferredSize(new Dimension(1500, 1000));
 		setLocationRelativeTo(null);
-		setBackground(Color.WHITE);
-		statut.setText("Connected to " + sss.getServerIP());
-		
-		
-		// colors
-		// mainClient.setBackground( Color.GREEN );
-		// pnNord.setBackground( Color.RED );
-		// jlMainClient.setBackground( Color.BLUE );
-		// jlMainClient.setOpaque( true );
-		// jsCurrentDownload.setBackground(Color.PINK);
-		// pnSud.setBackground(Color.PINK);
-
-		setLayout(new BorderLayout());
+		getContentPane().setLayout(new BoxLayout(getContentPane(), 1));
 		addAllComponents();
 
 		pack();
-		setVisible(true);
 
 	}
-	
-	private static void biggerFont( JComponent c )
-	{
-		c.setFont(c.getFont().deriveFont( 24.0f ));
+
+	private static void biggerFont(JComponent c) {
+		c.setFont(c.getFont().deriveFont(24.0f));
 	}
 
 	private void addAllComponents() {
 
-		// Panel mainClient à gauche dans panel nord
+		// Panel nord
+		clientID = new JLabel("Client " + cm.getClientID() + " connected to " + sss.getServerIP());
+		biggerFont(clientID);
+		pnNord.setLayout(new BorderLayout());
+		pnNord.setBorder(BorderFactory.createMatteBorder(0, 0, 2, 0, Color.BLACK));
+		pnNord.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
+		pnNord.add(clientID);
+		pnNord.setPreferredSize(new Dimension(0, 0));
+
+		// Panel center
+
+		// Panel mainClient à gauche
 		mainClient.setLayout(new BorderLayout());
-		
-	    contenuDossier= sss.getContenuDossier();
-		jltMainClient= new JList(contenuDossier);
+
+		contenuDossier = sss.getContenuDossier();
+		jltMainClient = new JList(contenuDossier);
 
 		jsMainClient = new JScrollPane(jltMainClient);
-		jlMainClient = new JLabel("Client ID "+  sss.getClientID() + " shared folder");
+		jlMainClient = new JLabel("Shared files");
 		biggerFont(jlMainClient);
-		
-		
+
 		mainClient.add(jlMainClient, BorderLayout.NORTH);
 		mainClient.add(jsMainClient, BorderLayout.CENTER);
 		mainClient.add(jbMainClient, BorderLayout.SOUTH);
 
-		// Panel otherclient à droite dans panel nord
+		// Panel otherclient à droite
 		listFiles = sss.getDisplayedList();
+		listFiles = new String[] { "3" + "\t" + "hello.txt", "hello.txt", "hello.txt", "hello.txt" };
 		jtOtherClients = new JList(listFiles);
 		jsOtherClients = new JScrollPane(jtOtherClients);
 		otherClient.setLayout(new BorderLayout());
 		otherClient.add(jlOtherClients, BorderLayout.NORTH);
 		otherClient.add(jsOtherClients, BorderLayout.CENTER);
-		otherClient.add(jbOtherClients, BorderLayout.SOUTH);
+		otherClient.add(jbdownload, BorderLayout.SOUTH);
 		biggerFont(jlOtherClients);
 
-		// panel nord
-		pnNord.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
-		pnNord.setLayout(new GridLayout(1, 2, 20, 0));
-		pnNord.add(mainClient);
-		pnNord.add(otherClient);
+		pnCenter.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
+		pnCenter.setLayout(new GridLayout(1, 2, 20, 0));
+		pnCenter.add(mainClient);
+		pnCenter.add(otherClient);
 
-		// panel sud info
-		pnInfo.add(statut);
+		jbdownload.addActionListener(this);
 
 		// panel sud
 		jsCurrentDownload = new JScrollPane(currentDownload);
 		pnSud.setLayout(new BorderLayout());
 		pnSud.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
-		pnSud.add(jsCurrentDownload, BorderLayout.CENTER);
+
+		biggerFont(jlcurrentDownload);
+		pnSud.add(jlcurrentDownload, BorderLayout.NORTH);
+
+		pncustomProgressBar.setLayout(new BoxLayout(pncustomProgressBar, BoxLayout.Y_AXIS));
+		pncustomProgressBar.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
+
 
 		add(pnNord, BorderLayout.NORTH);
-		add(pnSud, BorderLayout.CENTER);
-		add(pnInfo, BorderLayout.SOUTH);
+		add(pnCenter, BorderLayout.CENTER);
+		add(pnSud, BorderLayout.SOUTH);
 
 	}
-	
-	
 
-	public static void main(String[] args) {
-	
+	public String randName() {
+		String[] names = new String[] { "a.txt", "lolcat.png", "cool_super_amazing_music.mp3", "great_movie.avi" };
+
+		return names[(int) (Math.random() * names.length)];
 	}
 
-	public void update(Observable o, Object arg)
-	{
-		if ( o instanceof ShareClient )
-		{
-			ShareClient Ss = (ShareClient) o;
-			
-			// Update the GUI because the Client changed:
-			// ID, IP, sharefolder, server filelist, ...
+	// methode from Observer Interface
+	@Override
+	public void update(Observable o, Object arg) {
+		if (o == cm) {
+			updateStatus();
+
 		}
+
 	}
+
+	public void updateStatus() {
+		// connectedTo.setText(
+		// "Client " + cm.getClientID() + " connected to " + sss.getServerIP()
+		// );
+	}
+
+	@Override
+	public void actionPerformed(ActionEvent e) {
+		String string = (String) jtOtherClients.getSelectedValue();
+		System.out.println(jtOtherClients.getSelectedValue());
+		String[] parts = string.split("\t");
+		int id = Integer.parseInt(parts[0]);
+		String filename = parts[1];
+		System.out.println(parts[0] + "\t"  + parts[1]);
+
+		try {
+			InetAddress ip = InetAddress.getByName(sss.getIP(2));
+			pc.askForFile(ip, filename);
+			System.out.println("ask for file");
+		} catch (UnknownHostException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
+		
+		bars.add(new CustomProgressBar(filename, 0));
+
+		for(int i = 0; i<bars.size();i++)
+        {
+			pncustomProgressBar.add(bars.get(i));
+			bars.get(i).setBorder(BorderFactory.createEmptyBorder(12, 0, 0, 0));
+        }
+
+			pnSud.add(pncustomProgressBar, BorderLayout.CENTER);
+		
+
+	// public void update(Observable o, Object arg)
+	// {
+	// if ( o instanceof ShareClient )
+	// {
+	// ShareClient Ss = (ShareClient) o;
+	//
+	// // Update the GUI because the Client changed:
+	// // ID, IP, sharefolder, server filelist, ...
+	// }
+	// }
+}
+
 }

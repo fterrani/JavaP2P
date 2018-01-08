@@ -15,11 +15,12 @@ import java.net.InetAddress;
 import java.net.Socket;
 
 public class PeerClient {
-
+	private ClientModel model;
 	
-	
-	
-	
+	public PeerClient(ClientModel model) {
+		this.model= model;
+		
+	}
 
 	public Socket connectToClient(String clientName, int port) throws IOException
 	{
@@ -32,13 +33,35 @@ public class PeerClient {
 	// que l'utilisateur veut télécharger un fichier.
 	// Client appelerait ensuite peerClient.askForFile( ... )
 	
-	
 	public void askForFile( InetAddress ip, String filename )
 	{
+		
+		try {
+			Socket peerSocket = connectToClient(ip.getHostAddress(), model.PORT_DEFAULT);
+		
 		// Contacte un autre peer avec un socket et envoie getfile nomdufichier.txt
 		// Récupère la taille du fichier à télécharger
+		File fileToDownload = getFile(filename);
+		int size = (int) fileToDownload.length();
 		
-		//startNewDownload( ... );
+		startNewDownload(peerSocket,fileToDownload, size );
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+	
+	private File getFile(String filename) {
+		File f = null ;
+		File [] files = model.getShareFolder().listFiles();
+		
+		for (int i = 0; i < files.length; i++) {
+			if (filename == files[i].getName())
+				return files[i];
+		}
+		
+		return f;
+		
 	}
 	
 	// Socket doit être créé avant, dest est connu grâce à la liste des fichiers partagés,

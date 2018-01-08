@@ -9,6 +9,7 @@ package client;
 
 import java.io.IOException;
 import java.net.InetAddress;
+
 import gui.ClientFrame;
 
 
@@ -16,10 +17,12 @@ public class Client
  	
 {
 	private InetAddress ip;
-	private int port;
+	private InetAddress serverIP;
 	private ShareClient sc ;
 	private PeerServer ps ;
 	private PeerClient pc ;
+	private ClientModel model;
+	private int port ;
 	
 	public ShareClient getSss() {
 		return sc;
@@ -34,32 +37,39 @@ public class Client
 		return pc;
 	}
 	
-	public Client(InetAddress ip) throws IOException {
-		
-		this.ip = ip;
-		port = PeerServer.PORT_DEFAULT;
-		sc = new ShareClient();
-		ps = new PeerServer(ip, port);
-		pc = new PeerClient();
+	public ClientModel getModel() {
+		return model;
 	}
 
 	
-	// port for incoming connexions
-	public static final int PORT_DEFAULT = 60000;
-	
-	
+	public Client(InetAddress ip, InetAddress serverIP) throws IOException {
+		model= new ClientModel();
+		
+		this.ip = ip;
+		this.serverIP = serverIP;
+		port = model.PORT_DEFAULT;
+		sc = new ShareClient(model, serverIP);
+		ps = new PeerServer(ip, port, model);
+		pc = new PeerClient(model);
+	}
+
 	
 	public static void main (String[] args) {
-		 	
+		InetAddress ip;
+		InetAddress serverIP;
+		try {
+			ip = InetAddress.getByName("127.0.0.1");
+			serverIP = InetAddress.getByName("127.0.0.1");
 		
-			try {
-				
-			//	Client cl = new Client();
+				//creating the client 
+				Client cl = new Client(ip,serverIP);
 			
 				// Creating the frame 
-				//ClientFrame c = new ClientFrame(cl);
-				InetAddress ia = InetAddress.getByName("127.0.0.1");
+				ClientFrame c = new ClientFrame(cl);
 				
+				// Shows the frame and launches the Peerserver
+				c.setVisible( true );
+				cl.getPs().launch();
 				
 				
 			} catch (IOException e) {
@@ -67,21 +77,6 @@ public class Client
 				e.printStackTrace();
 			}
 		
-		
-			
-			
 		}
 		
 	}
-	
-	
-
-	
-	// Recieving a file from a client 
-	
-	
-
-	
-	
-
-
