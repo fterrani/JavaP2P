@@ -7,33 +7,40 @@ Date of creation: 14 déc. 2017
  */
 package client;
 
+import java.io.File;
 import java.io.IOException;
 import java.net.InetAddress;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 
 import gui.ClientFrame;
 
 
 public class Client 
- 	
 {
-	private InetAddress ip;
+	private ClientModel model;
+	
+	private InetAddress peerServerIP;
 	private InetAddress serverIP;
+	private int port ;
+	
 	private ShareClient sc ;
 	private PeerServer ps ;
 	private PeerClient pc ;
-	private ClientModel model;
-	private int port ;
 	
-	public ShareClient getSss() {
+	
+	
+	public ShareClient getShareClient() {
 		return sc;
 	}
 
-	public PeerServer getPs() {
+	public PeerServer getPeerServer() {
 		return ps;
 	}
 
 
-	public PeerClient getPc() {
+	public PeerClient getPeerClient() {
 		return pc;
 	}
 	
@@ -42,14 +49,17 @@ public class Client
 	}
 
 	
-	public Client(InetAddress ip, InetAddress serverIP) throws IOException {
-		model= new ClientModel();
+	public Client( File shareFolder, InetAddress _peerServerIP, InetAddress _serverIP ) throws IOException
+	{
+		model= new ClientModel( shareFolder );
 		
-		this.ip = ip;
-		this.serverIP = serverIP;
-		port = model.PORT_DEFAULT;
+		peerServerIP = _peerServerIP;
+		serverIP = _serverIP;
+		
+		port = model.PORT_PEER_SERVER;
+		
 		sc = new ShareClient(model, serverIP);
-		ps = new PeerServer(ip, port, model);
+		ps = new PeerServer(model, peerServerIP, port );
 		pc = new PeerClient(model);
 	}
 }

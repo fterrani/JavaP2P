@@ -23,7 +23,6 @@ public class PeerDownload extends PeerTransfer
 	public PeerDownload( Socket peerSocket, File dest, int fileSize ) throws FileNotFoundException, IOException
 	{
 		super(
-			peerSocket,
 			peerSocket.getInputStream(),
 			new FileOutputStream( dest ),
 			fileSize

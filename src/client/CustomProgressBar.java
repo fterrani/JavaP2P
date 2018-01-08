@@ -30,6 +30,7 @@ public class CustomProgressBar extends JPanel
 	
 	private JProgressBar bar;
 	private JLabel label;
+	private boolean error = false;
 	
 	public CustomProgressBar( String text, int value )
 	{
@@ -82,5 +83,22 @@ public class CustomProgressBar extends JPanel
 			(float)( startColor[1] + (endColor[1] - startColor[1]) * p ),
 			(float)( startColor[2] + (endColor[2] - startColor[2]) * p )
 		);
+	}
+	
+	public void setError( boolean _error )
+	{
+		error = _error;
+
+		if (error)
+		{
+			bar.setForeground( new Color(0.88f, 0.13f, 0.13f) );
+			bar.setString( "Error while transfering" );
+		}
+		
+		else
+		{
+			bar.setForeground( getProgressColor( 1.0f*bar.getValue() / bar.getMaximum()) );
+			bar.setString( null );
+		}
 	}
 }

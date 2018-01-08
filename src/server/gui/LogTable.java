@@ -49,9 +49,9 @@ public class LogTable
 		if ( record.getLevel() == Level.INFO )
 			type = "INFO";
 		else if ( record.getLevel() == Level.WARNING )
-			type = "WARN";
+			type = "WARNING";
 		else if ( record.getLevel() == Level.SEVERE )
-			type = "EROR";
+			type = "ERROR";
 		
 		model.addRow( new String[]
 		{

@@ -82,14 +82,14 @@ public class ClientFrame extends JFrame implements Observer, ActionListener {
 
 	public ClientFrame(Client cl) {
 		this.cl = cl;
-		sss = cl.getSss();
-		ps = cl.getPs();
-		pc = cl.getPc();
+		sss = cl.getShareClient();
+		ps = cl.getPeerServer();
+		pc = cl.getPeerClient();
 		cm = cl.getModel();
 		
 		setTitle("Interface principale");
 		setDefaultCloseOperation(EXIT_ON_CLOSE);
-		setPreferredSize(new Dimension(1500, 1000));
+		setPreferredSize(new Dimension(1000, 500));
 		setLocationRelativeTo(null);
 		getContentPane().setLayout(new BoxLayout(getContentPane(), 1));
 		addAllComponents();
@@ -173,16 +173,18 @@ public class ClientFrame extends JFrame implements Observer, ActionListener {
 		if ( arg instanceof PeerDownload )
 		{
 			PeerDownload download = (PeerDownload) arg;
+			CustomProgressBar bar;
 			
+			// We get the progress bar linked to that download if it exists
 			if ( downloadComponents.containsKey(download) )
 			{
-				int progress = (int) Math.round( download.getProgress() * 100f );
-				downloadComponents.get( download ).setValue( progress );
+				bar = downloadComponents.get( download );
 			}
 			
+			// We create the progress bar if it does not exist
 			else
 			{
-				CustomProgressBar bar = new CustomProgressBar( download.getFileName(), 0 );
+				bar = new CustomProgressBar( download.getFileName(), 0 );
 				
 				bar.setBorder(BorderFactory.createEmptyBorder(12, 0, 0, 0));
 				
@@ -191,6 +193,17 @@ public class ClientFrame extends JFrame implements Observer, ActionListener {
 				
 				// Ajout de la barre à l'interface
 				pncustomProgressBar.add( bar );
+			}
+			
+			
+			if ( download.errorOccured() )
+			{
+				bar.setError( true );
+			}
+			else
+			{
+				int progress = (int) Math.round( download.getProgress() * 100f );
+				bar.setValue( progress );
 			}
 		}
 		
@@ -221,7 +234,7 @@ public class ClientFrame extends JFrame implements Observer, ActionListener {
 		clientID.setText( status );
 	}
 
-	public void actionPerformed(ActionEvent e)
+	public void actionPerformed( ActionEvent e )
 	{
 		if ( e.getSource() == jbdownload )
 		{
@@ -235,8 +248,18 @@ public class ClientFrame extends JFrame implements Observer, ActionListener {
 				System.out.println(parts[0] + "\t"  + parts[1]);
 				
 				
-				InetAddress ip = InetAddress.getByName( sss.getIP( id ) );
-				pc.askForFile(ip, filename);
+				InetAddress ip = InetAddress.getByName( sss.cmdGetIP( id ) );
+				
+				Thread t = new Thread( new Runnable()
+				{
+					public void run()
+					{
+						pc.askForFile(ip, filename);
+					}
+				});
+				
+				t.start();
+				
 			}
 			catch (UnknownHostException e1)
 			{
@@ -246,7 +269,7 @@ public class ClientFrame extends JFrame implements Observer, ActionListener {
 		
 		else if( e.getSource() == jbMainClient )
 		{
-			cl.getSss().getfilelistFromServer();
+			cl.getShareClient().cmdGetfilelistFromServer();
 		}
 	}
 }

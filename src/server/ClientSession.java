@@ -65,12 +65,12 @@ public class ClientSession implements Runnable
 		timeout = System.currentTimeMillis() + (1000 * seconds);
 	}
 	
-	private void cmdRegister( String[] args )
+	private String cmdRegister( String[] args )
 	{
 		if ( args.length != 1 )
 		{
 			log( Level.WARNING, "register", "1 argument expected (received "+args.length+")" );
-			return;
+			return formatError("1 argument expected (received "+args.length+")");
 		}
 		
 		InetAddress ip = null;
@@ -84,7 +84,7 @@ public class ClientSession implements Runnable
 		if ( ip == null )
 		{
 			log( Level.WARNING, "register", "Invalid IP format ("+args[0]+")" );
-			return;
+			return formatError( "Invalid IP format ("+args[0]+")" );
 		}
 
 		if ( ! ip.equals( clientInfo.getIp() ) )
@@ -97,13 +97,11 @@ public class ClientSession implements Runnable
 					clientInfo.getIp().getHostAddress()
 				)
 			);
-			return;
+			return formatError( "Provided IP (%s) does not match yours (%s)" );
 		}
 		
 		int id = server.getModel().getNextClientId();
 		clientInfo.setId( id );
-		
-		sendTextData( Integer.toString(id) );
 		
 		log(
 			Level.INFO,
@@ -114,14 +112,16 @@ public class ClientSession implements Runnable
 				id
 			)
 		);
+		
+		return formatTextData( Integer.toString(id) );
 	}
 
-	private void cmdSharelist( String[] args )
+	private String cmdSharelist( String[] args )
 	{
 		if ( args.length == 0 )
 		{
 			log( Level.WARNING, "sharelist", "no argument received" );
-			return;
+			return formatError( "no argument received" );
 		}
 		
 		for (int i = 0; i < args.length; i++)
@@ -132,6 +132,8 @@ public class ClientSession implements Runnable
 		clientInfo.setSharedFiles( args );
 		
 		log( Level.INFO, "sharelist", "Sharelist of the client has been updated." );
+		
+		return formatTextData( "Sharelist updated" );
 	}
 	
 	// Returns the client ID if it is a positive number and is associated with a client.
@@ -164,7 +166,7 @@ public class ClientSession implements Runnable
 			return -1;
 		}
 		
-		if ( server.getModel().clientIdExists( clientId ) )
+		if ( !server.getModel().clientIdExists( clientId ) )
 		{
 			log( Level.INFO, "No client with ID "+ clientId );
 			return -1;
@@ -173,12 +175,12 @@ public class ClientSession implements Runnable
 		return clientId;
 	}
 	
-	private void cmdGetfilelist( String[] args )
+	private String cmdGetfilelist( String[] args )
 	{
 		if ( args.length > 1 )
 		{
 			log( Level.WARNING, "getfilelist", "0 or 1 argument expected ("+args.length+" given)" );
-			return;
+			return formatError( "0 or 1 argument expected ("+args.length+" given)" );
 		}
 		
 		String[][] filelist = new String[0][0];
@@ -196,8 +198,7 @@ public class ClientSession implements Runnable
 			{
 				// We send an error and nothing else if the 1 argument version of getfilelist
 				// was used and an invalid ID was received
-				sendError( "Invalid ID received or no client found with this ID ("+args[0]+")" );
-				return;
+				return formatError( "Invalid ID received or no client found with this ID ("+args[0]+")" );
 			}
 			
 			filelist = server.getModel().getFilelist( clientId );
@@ -217,19 +218,18 @@ public class ClientSession implements Runnable
 			sb.append( filelist[i][1] );
 		}
 		
-		sendTextData( sb.toString() );
-		
 		log( Level.INFO, "getfilelist", "Current server sharelist was sent to the client." );
+		return formatTextData( sb.toString() );
 	}
 	
 	
 	
-	private void cmdGetip( String[] args )
+	private String cmdGetip( String[] args )
 	{
 		if ( args.length != 1 )
 		{
 			log( Level.WARNING, "getip", "1 argument expected ("+args.length+" given)" );
-			return;
+			return formatError( "1 argument expected ("+args.length+" given)" );
 		}
 		
 		int clientId = parseAndCheckClientId( args[0] );
@@ -238,8 +238,7 @@ public class ClientSession implements Runnable
 		if ( clientId <= 0 )
 		{
 			// The ID does not exist or is not associated with a client
-			sendError( "Invalid ID received ("+args[0]+")" );
-			return;
+			return formatError( "Invalid ID received ("+args[0]+")" );
 		}
 		
 		// If clientId > 0, we know a client with this ID exists
@@ -249,27 +248,26 @@ public class ClientSession implements Runnable
 		if ( ip == null )
 		{
 			log( Level.WARNING, "getip", "No matching IP found for client with ID "+ clientId );
-			sendError("No IP found for client with ID " + clientId );
-			return;
+			return formatError("No IP found for client with ID " + clientId );
 		}
 		
 		// IP found, we send it
-		sendTextData( ip.getHostAddress() );
+		return formatTextData( ip.getHostAddress() );
 	}
 
-	public void sendMessage( String txt )
+	public String formatMessage( String txt )
 	{
-		osw.println( "MESG " + txt );
+		return ("MESG " + txt);
 	}
 	
-	public void sendError( String txt )
+	public String formatError( String txt )
 	{
-		osw.println( "EROR " + txt );
+		return ("EROR " + txt);
 	}
 	
-	public void sendTextData( String txt )
+	public String formatTextData( String txt )
 	{
-		osw.println( "DATA " + txt );
+		return ("DATA " + txt);
 	}
 
 	private void log( Level logLevel, String txt )
@@ -306,9 +304,11 @@ public class ClientSession implements Runnable
 				
 				if ( line != null )
 				{
+					String reply = "";
+					
 					if ( Pattern.matches("^[A-Za-z].*", line) )
 					{
-						String[] matches = line.split("\\s+");
+						String[] matches = line.trim().split("\\s+");
 						String command = matches[0];
 						String[] args = new String[0];
 						
@@ -319,20 +319,24 @@ public class ClientSession implements Runnable
 						
 						switch( command.toLowerCase() )
 						{
-							case "register": cmdRegister( args ); break;
-							case "sharelist": cmdSharelist( args ); break;
-							case "getfilelist": cmdGetfilelist( args ); break;
-							case "getip": cmdGetip( args ); break;
+							case "register": reply = cmdRegister( args ); break;
+							case "sharelist": reply = cmdSharelist( args ); break;
+							case "getfilelist": reply = cmdGetfilelist( args ); break;
+							case "getip": reply = cmdGetip( args ); break;
 
 							default:
-								sendError( "Invalid command: " + matches[0] );
+								reply = formatError( "Invalid command: " + matches[0] );
 						}
 					}
 					
 					else
 					{
-						sendError( "Commands must start with a letter (A-Z or a-z)" );
+						reply = formatError( "Commands must start with a letter (A-Z or a-z)" );
 					}
+					
+					// We send the reply to the client
+					osw.println( reply );
+					
 					
 					// We give again some seconds to the client to send something
 					resetTimeout( ShareServer.DEFAULT_TIMEOUT );
@@ -367,10 +371,14 @@ public class ClientSession implements Runnable
 			log( Level.INFO, "Socket closed." );
 		}
 		catch( IOException ioe ) {}
-		
+
 		// Removes this client session from the list
 		server.getModel().removeClientSession( this );
 		log( Level.INFO, "Session removed from session list." );
+		
+		// Removes this client's files from the list
+		server.getModel().removeClientInfo( this.clientInfo );
+		log( Level.INFO, "Client information (files etc.) removed from server." );
 	}
 
 	public ClientInfo getClientInfo()

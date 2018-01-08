@@ -13,6 +13,7 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.net.InetAddress;
 import java.net.Socket;
@@ -28,11 +29,8 @@ import server.ShareServer;
 public class PeerServer extends AbstractServer {
 	private ClientModel model;
 
-	// méthode downloadFile( InetAddress ip, String fileToDownload )
-	// Créer un PeerClientModel extends Observable
-
 	
-	public PeerServer(InetAddress _ip, int _port, ClientModel model) throws IOException
+	public PeerServer( ClientModel model, InetAddress _ip, int _port ) throws IOException
 	{
 		super(_ip, _port);
 		this.model = model;
@@ -46,6 +44,7 @@ public class PeerServer extends AbstractServer {
 		}
 		catch( IOException ioe )
 		{
+			System.err.println( "PeerServer: Could not create session for peer client");
 			return null;
 		}
 	}
@@ -55,29 +54,32 @@ public class PeerServer extends AbstractServer {
 	{
 		private Socket socket;
 		private BufferedReader reader;
-		private BufferedOutputStream bos;
-		private File f;
+		private OutputStream os;
 		
-		public PeerServerSession( Socket socket ) throws IOException
+		public PeerServerSession( Socket _socket ) throws IOException
 		{
+			socket = _socket;
 			reader = new BufferedReader(
 				new InputStreamReader(
 					socket.getInputStream()
 				)
 			);
 			
-			bos = new BufferedOutputStream( socket.getOutputStream() );
-			f = null;
+			os = new BufferedOutputStream( _socket.getOutputStream() );
 		}
 		
 		private void cmdGetFile( String[] args ) throws IOException
 		{
-			f = new File( args[0] );
-			String reply = "DATA " + f.length() + "\r\n";
+			File fileToSend = new File( model.getShareFolder(), args[0] );
 			
-			bos.write( reply.getBytes() );
+			System.out.println("FILE TO SEND: " + fileToSend.getAbsolutePath() );
 			
-			PeerUpload upload = new PeerUpload( socket, f, (int) f.length() );
+			String reply = "DATA " + fileToSend.length() + "\r\n";
+			
+			os.write( reply.getBytes() );
+			os.flush();
+			
+			PeerUpload upload = new PeerUpload( socket, fileToSend, (int) fileToSend.length() );
 			upload.run();
 		}
 		
@@ -85,31 +87,25 @@ public class PeerServer extends AbstractServer {
 		{
 			try
 			{
-				boolean fileInfoSent = false;
+				boolean fileSent = false;
 				
 				// We keep reading lines as long as we are not in timeout
-				while( ! fileInfoSent )
+				while( ! fileSent )
 				{
 					String line = reader.readLine();
 					
-					if ( line != null )
+					String[] matches = line.split("\\s+");
+					String command = matches[0];
+					String[] args = new String[0];
+					
+					if ( matches.length > 1 )
 					{
-						if ( Pattern.matches("^[A-Za-z].*", line) )
-						{
-							String[] matches = line.split("\\s+");
-							String command = matches[0];
-							String[] args = new String[0];
-							
-							if ( matches.length > 1 )
-							{
-								args = Arrays.copyOfRange( matches, 1, matches.length );
-							}
-							
-							switch( command.toLowerCase() )
-							{
-								case "getfile": cmdGetFile( args ); break;
-							}
-						}
+						args = Arrays.copyOfRange( matches, 1, matches.length );
+					}
+					
+					if ( command.toLowerCase().equals("getfile") )
+					{
+						cmdGetFile( args );
 					}
 				}
 			}
@@ -124,7 +120,10 @@ public class PeerServer extends AbstractServer {
 			try
 			{
 				// Closes the socket
-				socket.close();
+				System.out.println( "Closing PeerServer socket..." );
+				if (!socket.isClosed())
+					socket.close();
+				System.out.println( "Socket closed." );
 			}
 			catch( IOException ioe ) {}
 		}

@@ -11,11 +11,16 @@ package client;
 import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.InetAddress;
 import java.net.Socket;
+import java.nio.file.FileSystems;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Observable;
 import java.util.Observer;
 
@@ -27,7 +32,7 @@ public class ShareClient {
 	private Socket clientSocket;
 	private BufferedReader bufferedReader;
 	private PrintWriter printWriter;
-	private String[] response;
+	private String[] lastResponse;
 	private String givenIp;
 	private ClientModel model;
 	private File shareFolder;
@@ -38,73 +43,42 @@ public class ShareClient {
 		this.model = model;
 		this.serverIP= serverIP;
 		shareFolder= model.getShareFolder();
-		initFolder();
-		
 	}
 
-	// constructeur avec argument qui récupère le dossier déjà existant
-	public ShareClient(File file, ClientModel model) {
-		this.model = model;
-		if (file.exists())
-			shareFolder = file;
-		else
-			initFolder();
-	}
-
-	private void initFolder() {
-		shareFolder = new File("./shareFolders/client_" + System.currentTimeMillis());
-		if (!shareFolder.exists()) {
-			shareFolder.mkdirs();
-		}
-		File test = new File(shareFolder, "test.txt");
-		try {
-			test.createNewFile();
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-
-		System.out.println(shareFolder.getName());
-		System.out.println(shareFolder.listFiles().length);
-	}
-
-	/* Connexion and retrieving file list to/from server */
+	/* Connection and retrieving file list to/from server */
 	public void connectToServer() {
 
 		try {
 			System.out.println("Connecting to the server: " + serverIP.getHostName());
 			clientSocket = new Socket(serverIP, PORT_DEFAULT);
+			
+			System.out.println("Connected on port: " + clientSocket.getPort());
+			
+			if (clientSocket.isConnected()) {
+				createWriterAndReader();
+				cmdRegister();
+				cmdShareFiles();
+				cmdGetfilelistFromServer();
+			
+				// close connection to server
+				/*try {
+					clientSocket.close();
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}*/
+			}
 		} catch (IOException e) {
 			System.out.println("Connection impossible, check the server IP or server status");
 		}
-		System.out.println("Connected on port: " + clientSocket.getPort());
-
-		if (clientSocket.isConnected()) {
-			createWriterAndReader();
-			sendIP();
-			shareFiles();
-			getfilelistFromServer();
-		
-			// close connection to server
-			/*try {
-				clientSocket.close();
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}*/
-		}
 	}
 
-	private void createWriterAndReader() {
-		try {
-			printWriter = new PrintWriter(
-					new BufferedOutputStream(clientSocket.getOutputStream()), true);
-			bufferedReader = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
-
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+	private void createWriterAndReader() throws IOException {
+		printWriter = new PrintWriter(
+			new BufferedOutputStream(clientSocket.getOutputStream()), true
+		);
+		
+		bufferedReader = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
 	}
 
 	private String[] splitMessage( String message )
@@ -117,7 +91,8 @@ public class ShareClient {
 		return parts;
 	}
 	
-	public void getfilelistFromServer() {
+	// getfilelist command
+	public void cmdGetfilelistFromServer() {
 
 		printWriter.println("getFileList");
 		printWriter.flush();
@@ -125,12 +100,12 @@ public class ShareClient {
 		try {
 			String[] newList = new String[0];
 			
-			response = readMessage();
+			lastResponse = readMessage();
 
-			System.out.println(response[0] + " >>> '" + response[1] + "'");
+			System.out.println(lastResponse[0] + " >>> '" + lastResponse[1] + "'");
 
-			if (!response[1].equals("")) {
-				String[] strFiles = response[1].split(";");
+			if (!lastResponse[1].equals("")) {
+				String[] strFiles = lastResponse[1].split(";");
 				newList = new String[strFiles.length];
 
 				for (int i = 0; i < strFiles.length; i++) {
@@ -150,29 +125,33 @@ public class ShareClient {
 	private String[] readMessage() throws IOException {
 		return splitMessage(bufferedReader.readLine());
 	}
-
-	public void shareFiles() {
+	
+	// sharelists command
+	public void cmdShareFiles() throws IOException {
 		String listFileToShare = "";
 
 		File[] contenuDossier = shareFolder.listFiles();
 
-		for (int j = 0; j < contenuDossier.length; j++) {
-			listFileToShare += contenuDossier[j].getName();
+		for (int j = 0; j < contenuDossier.length; j++)
+		{
+			listFileToShare += (j>0?" ":"") + contenuDossier[j].getName();
 		}
 
 		printWriter.println("shareList" + " " + listFileToShare);
 		printWriter.flush();
+		
+		lastResponse = readMessage();
 	}
 
-	private void sendIP() {
+	private void cmdRegister() {
 		try {
 
 			printWriter.println("register" + " " + clientSocket.getInetAddress().getHostAddress());
 			printWriter.flush();
 
-			response = readMessage();
+			lastResponse = readMessage();
 
-			int givenID = Integer.parseInt(response[1]);
+			int givenID = Integer.parseInt(lastResponse[1]);
 			System.out.println(givenID);
 			model.setClientID((int) givenID);
 
@@ -182,14 +161,14 @@ public class ShareClient {
 		}
 	}
 
-	public String getIP(int id) {
+	public String cmdGetIP(int id) {
 		try {
 			printWriter.println("getIp" + " " + id);
 			printWriter.flush();
 
-			response = readMessage();
+			lastResponse = readMessage();
 
-			givenIp = response[1];
+			givenIp = lastResponse[1];
 			
 			return givenIp;
 

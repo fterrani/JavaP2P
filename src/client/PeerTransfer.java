@@ -16,71 +16,61 @@ import java.net.Socket;
 
 import common.ConvenienceObservable;
 
-// Cette classe est la classe de base pour PeerDownload et PeerUpload.
-// Peu importe le sens du transfert, elle se charge de le gérer et de mettre
-// à jour un pourcentage :) Cool non? Moi j'trouve que ça rocks du poney.
-
-// Pour organiser le transfert, on avait défini une commande "getfile fichier.txt"
-// que A envoie à B mais on n'avait pas défini la réponse de B.
-// B va répondre soit : "EROR File fichier.txt not found"
-// Soit : "DATA 1024" avec 1024 qui est la taille du fichier à transférer en bytes.
-// On doit connaître cette information pour pouvoir connaître l'avancement du téléchargement.
-
+// File upload and download class
 public class PeerTransfer extends ConvenienceObservable implements Runnable
 {
-	private Socket peerSocket;
-	
 	private OutputStream dest;
 	private InputStream source;
 	
 	private double progress;
-	private int transferedBytes;
+	private int transferedBytes = 0;
+	private boolean error = false;
 	private int fileSize;
 	
 	public void run()
 	{
 		try
 		{
-			// C'est ici qu'on va transférer le fichier.
-			
-			// Le code est un peu technique mais ça va nous permettre d'afficher l'avancement
-			// du téléchargement
-			
-			byte[] buffer = new byte[1024 * 32]; // On va lire par "tranches" de 32 KB
+			// File transfer happens here
+			byte[] buffer = new byte[1024 * 32]; // 32 KB chunks
 			int readBytes = -1;
 			
-			// À chaque tour de boucle, on lit une partie de la source
-			while( (readBytes = source.read(buffer)) != -1 )
+			// We make sure to notify observers that we start
+			setProgress(0);
+			
+			// We keep reading as long as we haven't received all bytes
+			while( transferedBytes < fileSize )
 			{
-				// Puis on écrit dans la destination
-				dest.write( buffer, 0, readBytes );
+				readBytes = source.read(buffer);
 				
-				// Ici on modifie les données pour signaler combien de bytes ont été transférés
-				addTransferedBytes( readBytes );
+				if ( readBytes != -1 )
+				{
+					// Writing and flushing to the destination
+					dest.write( buffer, 0, readBytes );
+					dest.flush();
+					
+					// We update PeerTransfer's data
+					addTransferedBytes( readBytes );
+				}
 			}
 			
-			// On ferme le socket lorsque le transfert est terminé
-			peerSocket.close();
+			// We make sure to notify observers that we are done
+			setProgress(1);
 			
-			// On ferme les flux source et destination
-			// L'un des deux a automatiquement été fermé lorsque peerSocket a été fermé,
-			// mais comme on ne sait pas lequel, on ferme les deux.
+			// We close both streams. If a socket is bound to one of these, it will automatically be closed
 			source.close();
 			dest.close();
 		}
 		catch( IOException ioe )
 		{
-			// Si on arrive ici, c'est qu'il y a eu une erreur lors du transfert !
+			System.out.println( "Error while transfering!" );
+			setError( true );
 		}
 	}
 	
-	public PeerTransfer( Socket _peerSocket, InputStream inStream, OutputStream outStream, int _fileSize )
+	public PeerTransfer( InputStream inStream, OutputStream outStream, int _fileSize )
 	{
-		peerSocket = _peerSocket;
-		
-		transferedBytes = 0;
 		fileSize = _fileSize;
-		
 		source = inStream;
 		dest = outStream;
 	}
@@ -96,17 +86,25 @@ public class PeerTransfer extends ConvenienceObservable implements Runnable
 		return progress;
 	}
 	
+	public boolean errorOccured()
+	{
+		return error;
+	}
+	
 	public boolean isFinished()
 	{
 		return (progress >= 1.0);
+	}
+	
+	private void setError( boolean _error )
+	{
+		error = _error;
+		changeAndNotify();
 	}
 
 	private void setProgress( float progress )
 	{
 		this.progress = progress;
-		
-		// C'est grâce à ça qu'on avertit les Observer intéressés par la progression
-		// du transfert.
 		changeAndNotify();
 	}
 }

@@ -39,13 +39,17 @@ public class PeerClient {
 	
 	public PeerDownload askForFile( InetAddress ip, String filename )
 	{
-		System.out.println("ask for file");
+		System.out.println(
+			"Client " + model.getClientID()
+			+ " ask for " + filename
+			+ " stored at " + ip.getHostAddress()
+		);
 		
 		PeerDownload download = null;
 		
 		try
 		{
-			Socket peerSocket = connectToClient(ip.getHostAddress(), model.PORT_DEFAULT);
+			Socket peerSocket = connectToClient(ip.getHostAddress(), model.PORT_PEER_SERVER);
 			download = getFile( peerSocket, filename );
 		}
 		catch (Exception e)

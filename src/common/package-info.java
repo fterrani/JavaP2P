@@ -1,8 +1,0 @@
-/**
- * 
- */
-/**
- * @author Fabien
- *
- */
-package common;
