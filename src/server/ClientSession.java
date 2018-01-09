@@ -124,7 +124,7 @@ public class ClientSession implements Runnable
 			return formatError( "no argument received" );
 		}
 		
-		if ( parseAndCheckClientId( ""+clientInfo.getId() ) != -1 )
+		if ( parseAndCheckClientId( ""+clientInfo.getId() ) == -1 )
 		{
 			log( Level.WARNING, "sharelist", "Unregistered client trying to share files");
 			return formatError( "Please register before sharing files" );
@@ -194,6 +194,7 @@ public class ClientSession implements Runnable
 		if (args.length == 0)
 		{
 			filelist = server.getModel().getFilelist();
+			log( Level.INFO, "getfilelist", "Current server sharelist was sent to the client." );
 		}
 		
 		else if (args.length == 1)
@@ -208,6 +209,7 @@ public class ClientSession implements Runnable
 			}
 			
 			filelist = server.getModel().getFilelist( clientId );
+			log( Level.INFO, "getfilelist", "Current sharelist of client "+clientId+" was sent to the client." );
 		}
 		
 		// In other case (0 argument, or 1 argument with a potentially existing client ID),
@@ -224,7 +226,6 @@ public class ClientSession implements Runnable
 			sb.append( filelist[i][1] );
 		}
 		
-		log( Level.INFO, "getfilelist", "Current server sharelist was sent to the client." );
 		return formatTextData( sb.toString() );
 	}
 	
