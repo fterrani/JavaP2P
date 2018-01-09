@@ -89,15 +89,17 @@ public class ClientSession implements Runnable
 
 		if ( ! ip.equals( clientInfo.getIp() ) )
 		{
+			String ipNoMatchMsg = String.format(
+				"Provided IP (%s) does not match yours (%s)",
+				ip.getHostAddress(),
+				clientInfo.getIp().getHostAddress()
+			);
+			
 			log( Level.WARNING,
 				"register",
-				String.format(
-					"Provided IP (%s) does not match yours (%s)",
-					ip.getHostAddress(),
-					clientInfo.getIp().getHostAddress()
-				)
+				ipNoMatchMsg
 			);
-			return formatError( "Provided IP (%s) does not match yours (%s)" );
+			return formatError( ipNoMatchMsg );
 		}
 		
 		int id = server.getModel().getNextClientId();
