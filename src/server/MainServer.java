@@ -14,6 +14,7 @@ import java.net.UnknownHostException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.logging.FileHandler;
+import java.util.logging.LogManager;
 
 import server.gui.ShareServerFrame;
 
@@ -74,6 +75,7 @@ public class MainServer
 		}
 		catch ( IOException e )
 		{
+			e.printStackTrace();
 			System.exit( 1 );
 		}
 	}

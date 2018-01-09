@@ -34,7 +34,7 @@ public class ShareServerModel extends ConvenienceObservable implements Observer
 		clientInfos = new HashSet<>();
 	}
 	
-	public int getNumberOfClients()
+	public int getNumberOfClientSessions()
 	{
 		return clientSessions.size();
 	}

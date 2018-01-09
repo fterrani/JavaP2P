@@ -21,6 +21,9 @@ import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Observable;
 import java.util.Observer;
 
@@ -89,24 +92,56 @@ public class ShareClient {
 		printWriter.println("getFileList");
 		printWriter.flush();
 
-		
-		String[] newList = new String[0];
+		// Each client ID is bound to a list of strings
+		HashMap<Integer, ArrayList<PeerFile>> newList = new HashMap<Integer, ArrayList<PeerFile>>();
 		
 		lastResponse = readMessage();
 
 		System.out.println(lastResponse[0] + " >>> '" + lastResponse[1] + "'");
 
-		if (!lastResponse[1].equals("")) {
+		if (!lastResponse[1].equals(""))
+		{
+			int id;
 			String[] strFiles = lastResponse[1].split(";");
-			newList = new String[strFiles.length];
-
+			
 			for (int i = 0; i < strFiles.length; i++) {
 				String[] parts = strFiles[i].split(":");
-				newList[i] = parts[0] + "\t" + parts[1];
+				
+				if ( parts.length == 2 )
+				{
+					try
+					{
+						// We get the client ID
+						id = Integer.parseInt( parts[0] );
+						
+						// We create a filelist for client ID, if it doesn't exist
+						if ( !newList.containsKey(id) )
+							newList.put( id, new ArrayList<PeerFile>() );
+						
+						// We add the file to the client's list
+						newList.get( id ).add( new PeerFile(id, parts[1]) );
+					}
+					catch(NumberFormatException nfe)
+					{
+						System.out.println( "Invalid ID received from server!" );
+					}
+				}
 			}
 		}
 		
-		model.setListFileFromServer( newList );
+		int peerCount = newList.size();
+		int[] clientIds = new int[ peerCount ];
+		PeerFile[][] fileNames = new PeerFile[ peerCount ][0];
+		int i = 0;
+		
+		for( Map.Entry<Integer, ArrayList<PeerFile>> peer : newList.entrySet() )
+		{
+			clientIds[i] = peer.getKey();
+			fileNames[i] = peer.getValue().toArray( new PeerFile[0] );
+			i++;
+		}
+		
+		model.setListFileFromServer( clientIds, fileNames );
 	}
 
 	private String[] readMessage() throws IOException {
@@ -163,10 +198,6 @@ public class ShareClient {
 
 	public String[] getContenuDossier() {
 		return shareFolder.list();
-	}
-
-	public String[] getDisplayedList() {
-		return model.getListFileFromServer();
 	}
 
 	public ClientModel getModel() {

@@ -106,13 +106,14 @@ public class PeerServer extends AbstractServer {
 					if ( command.toLowerCase().equals("getfile") )
 					{
 						cmdGetFile( args );
+						fileSent = true;
 					}
 				}
 			}
 			
 			catch( IOException ioe )
 			{
-				ioe.printStackTrace();
+				System.out.println( "PeerServer: I/O error while handling PeerClient session." );
 			}
 			
 			

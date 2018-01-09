@@ -11,11 +11,14 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeFormatterBuilder;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.Observable;
 import java.util.Observer;
@@ -30,6 +33,8 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTabbedPane;
 import javax.swing.JTable;
+import javax.swing.SwingWorker;
+import javax.swing.Timer;
 import javax.swing.event.TableModelListener;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableCellRenderer;
@@ -49,12 +54,12 @@ public class ShareServerFrame extends JFrame implements Observer
 	private JPanel filesPanel;
 	private JPanel logPanel;
 	
-	private LogTable logTable;
-	
+	private JLabel filesTabTitle;
 	private JTable filesTable;
 	private DefaultTableModel filesModel;
 	private String[] filesColumns;
 	
+	private LogTable logTable;
 	
 	public ShareServerFrame( ShareServer _server )
 	{
@@ -68,6 +73,8 @@ public class ShareServerFrame extends JFrame implements Observer
 		// This will display the server's logs in the log table
 		server.getLogger().addHandler( logTable.getHandler() );
 		
+		filesTabTitle = new JLabel("Shared files");
+		makeFontBigger( filesTabTitle );
 		filesColumns = new String[] {"Client ID", "Client IP", "File name"};
 		filesModel = new DefaultTableModel( filesColumns, 0 );
 		filesTable = new JTable( filesModel );
@@ -85,7 +92,8 @@ public class ShareServerFrame extends JFrame implements Observer
 		
 		tabs = new JTabbedPane();
 		tabs.setFont( tabs.getFont().deriveFont(16f) );
-		tabs.addTab( "Files shared by clients", filesPanel );
+		tabs.addTab( null, filesPanel );
+		tabs.setTabComponentAt( 0, filesTabTitle );
 		tabs.addTab( "Logs", logPanel );
 		
 		add( tabs, BorderLayout.CENTER );
@@ -121,16 +129,32 @@ public class ShareServerFrame extends JFrame implements Observer
 		{
 			updateStatus();
 			refreshFilelist();
+			updatePeerNumber();
 		}
 	}
 
 	public void updateStatus()
 	{
-		status.setText(
+		setTitle(
 			String.format(
-				"Server listening on IP %s, on port %s",
+				"Server - Listening on IP %s (port %s)",
 				server.getIp().getHostAddress(),
 				server.getPort()
+			)
+		);
+	}
+
+	public void updatePeerNumber()
+	{
+		int n = server.getModel().getNumberOfClientSessions();
+
+		filesTabTitle.setText("Shared files ("+ server.getModel().getFilelist().length +")");
+		
+		status.setText(
+			String.format(
+				"%s peer%s connected",
+				n,
+				(n>1?"s":"")
 			)
 		);
 	}
@@ -149,7 +173,20 @@ public class ShareServerFrame extends JFrame implements Observer
 			};
 		}
 		
-		filesModel.setDataVector( fileList, filesColumns );
+		System.out.println( "Updating GUI filelist..." );
+		
+		Timer t = new Timer(0, new ActionListener()
+		{
+			public void actionPerformed(ActionEvent e)
+			{
+				filesModel.setDataVector( fileList, filesColumns );
+				System.out.println( "Updated!" );
+			}
+		});
+		t.setRepeats(false);
+		t.start();
+		
+		//filesModel.setDataVector( fileList, filesColumns );
 	}
 	
 }

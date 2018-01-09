@@ -18,6 +18,7 @@ import java.awt.event.ActionListener;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Observable;
@@ -28,6 +29,7 @@ import client.Client;
 import client.ClientModel;
 import client.PeerClient;
 import client.PeerDownload;
+import client.PeerFile;
 import client.PeerServer;
 import client.ShareClient;
 
@@ -45,15 +47,16 @@ public class ClientFrame extends JFrame implements Observer, ActionListener {
 	private JLabel jlMainClient;
 	private JList<String> jltMainClient;
 	private JScrollPane jsMainClient;
-	private JButton shareAndRefresh = new JButton("Refresh list");
+	private JButton shareAndRefresh = new JButton("Share and refresh all");
 
 	// panel peers
 	private JPanel pnPeers = new JPanel();
-	private JPanel jpButton = new JPanel();
+	private JPanel jpPeerButtons = new JPanel();
+	private JPanel jpClientButtons = new JPanel();
 	private JLabel jlOtherClients = new JLabel("Files available");
 	private JButton refreshListFromServer = new JButton("Refresh list");
-	private String[] listFiles;
-	private JList<String> filesFromPeers;
+	private JList<PeerFile> filesFromPeer;
+	private JComboBox<String> peerList;
 	private JScrollPane jsOtherClients;
 	private JButton jbdownload = new JButton("Download");
 
@@ -90,66 +93,78 @@ public class ClientFrame extends JFrame implements Observer, ActionListener {
 		cm.addObserver(this);
 	}
 
-	private static void biggerFont(JComponent c) {
-		c.setFont(c.getFont().deriveFont(24.0f));
+	private static void biggerFont(JComponent c, float size) {
+		c.setFont(c.getFont().deriveFont(size));
 	}
 
 	private void addAllComponents() {
 
 		// Panel nord
 		clientID = new JLabel();
+		clientID.setOpaque(true);
 		updateClientID();
-		biggerFont(clientID);
-		pnNord.setLayout(new BorderLayout());
-		pnNord.setBorder(BorderFactory.createMatteBorder(0, 0, 2, 0, Color.BLACK));
+		biggerFont(clientID,16f);
+		pnNord.setLayout(new FlowLayout( FlowLayout.LEFT, 0, 0 ));
 		pnNord.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
 		pnNord.add(clientID);
-		pnNord.setPreferredSize(new Dimension(0, 0));
-
+		
 		// Panel mainClient left
 		mainClient.setLayout(new BorderLayout());
 		localFolderContent = sc.getContenuDossier();
-		jltMainClient = new JList(localFolderContent);
-
+		jltMainClient = new JList<String>(localFolderContent);
+		jltMainClient.setVisibleRowCount( 5 );
+		
 		jsMainClient = new JScrollPane(jltMainClient);
 		jlMainClient = new JLabel("Shared files");
-		biggerFont(jlMainClient);
-
+		biggerFont(jlMainClient, 22f);
+		
+		
+		jpClientButtons.setLayout( new FlowLayout( FlowLayout.LEFT, 0, 5 ) );
+		jpClientButtons.add( shareAndRefresh );
+		
 		mainClient.add(jlMainClient, BorderLayout.NORTH);
 		mainClient.add(jsMainClient, BorderLayout.CENTER);
-		mainClient.add(shareAndRefresh, BorderLayout.SOUTH);
+		mainClient.add(jpClientButtons, BorderLayout.SOUTH);
 
 		// Panel peers right
-		listFiles = sc.getDisplayedList();
-		filesFromPeers = new JList<String>(listFiles);
-		jsOtherClients = new JScrollPane(filesFromPeers);
+		peerList = new JComboBox<String>( new String[]{"Loading peers..."} );
+		filesFromPeer = new JList<PeerFile>();
+		filesFromPeer.setVisibleRowCount( 5 );
+		jsOtherClients = new JScrollPane(filesFromPeer);
 		pnPeers.setLayout(new BorderLayout());
 		pnPeers.add(jlOtherClients, BorderLayout.NORTH);
 		pnPeers.add(jsOtherClients, BorderLayout.CENTER);
-		jpButton.setLayout(new FlowLayout(FlowLayout.LEFT));
-		jpButton.add(refreshListFromServer);
-		jpButton.add(jbdownload);
-		pnPeers.add(jpButton, BorderLayout.SOUTH);
-		biggerFont(jlOtherClients);
-
+		jpPeerButtons.setLayout(new FlowLayout(FlowLayout.LEFT));
+		jpPeerButtons.add(refreshListFromServer);
+		jpPeerButtons.add(jbdownload);
+		jpPeerButtons.add(peerList);
+		pnPeers.add(jpPeerButtons, BorderLayout.SOUTH);
+		biggerFont(jlOtherClients, 22f);
+		
 		// panel center
-		pnCenter.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
+		pnCenter.setBorder(BorderFactory.createEmptyBorder(0, 20, 20, 20));
 		pnCenter.setLayout(new GridLayout(1, 2, 20, 0));
 		pnCenter.add(mainClient);
 		pnCenter.add(pnPeers);
+		
+		// Listening to button events...
+		peerList.addActionListener(this);
 		jbdownload.addActionListener(this);
 		shareAndRefresh.addActionListener(this);
+		refreshListFromServer.addActionListener(this);
 
 		// panel sud
 		pnSud.setLayout(new BorderLayout());
-		pnSud.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
-		biggerFont(jlcurrentDownload);
+		pnSud.setBorder(BorderFactory.createEmptyBorder(0, 20, 20, 20));
+		biggerFont(jlcurrentDownload, 22f);
 		pnSud.add(jlcurrentDownload, BorderLayout.NORTH);
 		pncustomProgressBar.setLayout(new BoxLayout(pncustomProgressBar, BoxLayout.Y_AXIS));
-		pncustomProgressBar.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
+		pncustomProgressBar.setBorder(BorderFactory.createEmptyBorder(0, 20, 20, 20));
 		jsCurrentDownload = new JScrollPane(pncustomProgressBar);
 		pnSud.add(jsCurrentDownload, BorderLayout.CENTER);
-
+		
+		
+		
 		// adding panels to contentPane
 		add(pnNord, BorderLayout.NORTH);
 		add(pnCenter, BorderLayout.CENTER);
@@ -158,8 +173,10 @@ public class ClientFrame extends JFrame implements Observer, ActionListener {
 	}
 
 	// method from Observer Interface
-	public void update(Observable o, Object arg) {
-		if (arg instanceof PeerDownload) {
+	public void update(Observable o, Object arg)
+	{
+		if (arg instanceof PeerDownload)
+		{
 			PeerDownload download = (PeerDownload) arg;
 			CustomProgressBar bar;
 
@@ -203,10 +220,12 @@ public class ClientFrame extends JFrame implements Observer, ActionListener {
 		else if (arg instanceof String) {
 			String s = arg.toString();
 
-			if (s.equals("server_filelist")) {
-				String[] serverList = cl.getModel().getListFileFromServer();
-
-				filesFromPeers.setListData(serverList);
+			if (s.equals("server_filelist"))
+			{
+				Map<Integer, PeerFile[]> fileList = cl.getModel().getListFileFromServer();
+				
+				// We update the peer list with the one received from the server
+				updatePeerList();
 			}
 		}
 
@@ -226,33 +245,84 @@ public class ClientFrame extends JFrame implements Observer, ActionListener {
 		//updating title bar
 		setTitle("Client ID : " + cm.getClientID() + " / " + "Folder : " + cm.getShareFolder().getName());
 	}
-
+	
+	private void updatePeerList()
+	{
+		peerList.removeAllItems();
+		peerList.addItem( "All peers" );
+		
+		for( int clientId : cl.getModel().getListFileFromServer().keySet() )
+		{
+			peerList.addItem( "Client " + clientId );
+		}
+		
+		peerList.setSelectedIndex(0);
+		
+		// We show all files by default
+		showFileList( 0 );
+	}
+	
+	// Shows the files for peer with ID clientId.
+	// If clientId is 0, shows all files from all peers.
+	private void showFileList( int clientId )
+	{
+		ArrayList<PeerFile> files = new ArrayList<>();
+		
+		Map<Integer, PeerFile[]> list = cl.getModel().getListFileFromServer();
+		
+		if ( clientId != 0 )
+		{
+			// If the client ID exists in the list, we show its files
+			if ( list.keySet().contains(clientId) )
+				files.addAll( Arrays.asList( list.get(clientId) ) );
+			
+			// Otherwise, we let the list empty
+		}
+		
+		else
+		{
+			// If no client ID is selected (id=0), we show all files from all peers
+			for( Map.Entry<Integer, PeerFile[]> peer : list.entrySet() )
+			{
+				files.addAll( Arrays.asList( peer.getValue() ) );
+			}
+		}
+		
+		// We sort the filelist before showing it
+		files.sort( null );
+		
+		filesFromPeer.setListData( files.toArray(new PeerFile[0]) );
+	}
+	
 	public void actionPerformed(ActionEvent e) {
-		if (e.getSource() == jbdownload) {
-			try {
-				String string = filesFromPeers.getSelectedValue();
-				System.out.println(filesFromPeers.getSelectedValue());
-				String[] parts = string.split("\t");
-				int id = Integer.parseInt(parts[0]);
-				String filename = parts[1];
-				System.out.println(parts[0] + "\t" + parts[1]);
-
-				InetAddress ip = InetAddress.getByName(sc.cmdGetIP(id));
-
-				Thread t = new Thread(new Runnable() {
-					public void run() {
-						pc.askForFile(ip, filename);
-					}
-				});
-
-				t.start();
-
+		
+		if (e.getSource() == jbdownload)
+		{
+			try
+			{
+				PeerFile peerFile = filesFromPeer.getSelectedValue();
+				
+				if (peerFile != null)
+				{
+					System.out.println("File to download: " + filesFromPeer.getSelectedValue() );
+	
+					InetAddress ip = InetAddress.getByName(sc.cmdGetIP( peerFile.getClientId() ));
+	
+					Thread t = new Thread(new Runnable() {
+						public void run() {
+							pc.askForFile( ip, peerFile.getFileName() );
+						}
+					});
+	
+					t.start();
+				}
 			} catch (IOException ioe) {
 				System.err.println("Error while downloading the file...");
 			}
 		}
 
-		else if (e.getSource() == shareAndRefresh) {
+		else if (e.getSource() == shareAndRefresh)
+		{
 			try {
 
 				jltMainClient.setListData(sc.getContenuDossier());
@@ -261,12 +331,35 @@ public class ClientFrame extends JFrame implements Observer, ActionListener {
 			} catch (IOException e1) {
 				System.err.println("Error while refreshing local folder and sharing with server");
 			}
-		} else if (e.getSource() == refreshListFromServer) {
+		}
+		
+		else if (e.getSource() == refreshListFromServer)
+		{
 			try {
 				sc.cmdGetfilelistFromServer();
 			} catch (IOException e1) {
 				System.err.println("Error while refreshing the shared files list...");
 			}
+		}
+		
+		else if (e.getSource() == peerList && peerList.getSelectedIndex() > -1)
+		{
+			// Display the selected peer's files or all files if no peer was selected
+			String selection = peerList.getItemAt( peerList.getSelectedIndex() );
+			String[] parts = selection.split(" ");
+			
+			int clientId = 0;
+			
+			if ( parts.length >= 2 )
+			{
+				try
+				{
+					clientId = Integer.parseInt( parts[1] );
+				}
+				catch(NumberFormatException nfe) {}
+			}
+			
+			showFileList( clientId );
 		}
 	}
 }

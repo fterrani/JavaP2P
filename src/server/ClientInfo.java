@@ -56,7 +56,16 @@ public class ClientInfo extends ConvenienceObservable
 	public void setSharedFiles( String[] files )
 	{
 		fileList.clear();
-		fileList.addAll( Arrays.asList(files) );
+		
+		for (int i = 0; i < files.length; i++)
+		{
+			String fileName = files[i].trim();
+			
+			// We ignore file with no name sent by the client
+			if ( !fileName.isEmpty() )
+				fileList.add( fileName );
+		}
+		
 		changeAndNotify();
 	}
 	

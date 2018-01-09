@@ -18,7 +18,8 @@ import client.gui.ClientFrame;
 
 public class MainClient
 {
-	// First parameter is the folder we want to use as the client folder
+	// Argument 1: folder we want to use as the local client folder
+	// Argument 2: IP du serveur ayant la liste des fichiers
 	public static void main (String[] args)
 	{
 		InetAddress peerServerIP;
@@ -28,13 +29,23 @@ public class MainClient
 		{
 			File clientFolder;
 			
+			// Setting up client local folder
 			if (args.length > 0)
 				clientFolder = new File( args[0] );
 			else
 				clientFolder = initFolder();
 			
+			
+			String argServerIP = "127.0.0.1";
+			
+			// Reading server IP from argument 2 if it exists
+			if ( args.length >= 2 )
+			{
+				argServerIP = args[1];
+			}
+			
 			peerServerIP = InetAddress.getByName("127.0.0.1");
-			serverIP = InetAddress.getByName("127.0.0.1");
+			serverIP = InetAddress.getByName( argServerIP );
 			
 			//creating the client 
 			Client cl = new Client(clientFolder, peerServerIP, serverIP );
