@@ -71,13 +71,13 @@ public class MainClient
 	
 	public static File initFolder()
 	{
-		char c = 'A';
-		Path p = Paths.get("./shareFolders/client_" + c);
+		int n = 1;
+		Path p = Paths.get("./shareFolders/client_" + n);
 		
 		while( Files.exists(p) && Files.isDirectory(p) )
 		{
-			c += 1;
-			p = Paths.get("./shareFolders/client_" + c);
+			n += 1;
+			p = Paths.get("./shareFolders/client_" + n);
 		}
 		
 		File shareFolder = p.toFile();
@@ -85,7 +85,7 @@ public class MainClient
 		if (!shareFolder.exists()) {
 			shareFolder.mkdirs();
 		}
-		File test = new File(shareFolder, "test_client_"+c+".txt");
+		File test = new File(shareFolder, "test_client_"+n+".txt");
 		try {
 			test.createNewFile();
 		} catch (IOException e) {
