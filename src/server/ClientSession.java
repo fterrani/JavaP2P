@@ -124,6 +124,12 @@ public class ClientSession implements Runnable
 			return formatError( "no argument received" );
 		}
 		
+		if ( parseAndCheckClientId( ""+clientInfo.getId() ) != -1 )
+		{
+			log( Level.WARNING, "sharelist", "Unregistered client trying to share files");
+			return formatError( "Please register before sharing files" );
+		}
+		
 		for (int i = 0; i < args.length; i++)
 		{
 			args[i] = args[i].trim();
@@ -323,6 +329,7 @@ public class ClientSession implements Runnable
 							case "sharelist": reply = cmdSharelist( args ); break;
 							case "getfilelist": reply = cmdGetfilelist( args ); break;
 							case "getip": reply = cmdGetip( args ); break;
+							case "quit":  clientQuit = true; break;
 
 							default:
 								reply = formatError( "Invalid command: " + matches[0] );

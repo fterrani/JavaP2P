@@ -46,30 +46,22 @@ public class ShareClient {
 	}
 
 	/* Connection and retrieving file list to/from server */
-	public void connectToServer() {
+	public void connectToServer() throws IOException {
 
-		try {
-			System.out.println("Connecting to the server: " + serverIP.getHostName());
-			clientSocket = new Socket(serverIP, PORT_DEFAULT);
+		System.out.println("Connecting to the server: " + serverIP.getHostName());
+		clientSocket = new Socket(serverIP, PORT_DEFAULT);
+		
+		System.out.println("Connected on port: " + clientSocket.getPort());
+		
+		if (clientSocket.isConnected()) {
+			createWriterAndReader();
+			cmdRegister();
+			cmdShareFiles();
+			cmdGetfilelistFromServer();
 			
-			System.out.println("Connected on port: " + clientSocket.getPort());
-			
-			if (clientSocket.isConnected()) {
-				createWriterAndReader();
-				cmdRegister();
-				cmdShareFiles();
-				cmdGetfilelistFromServer();
-			
-				// close connection to server
-				/*try {
-					clientSocket.close();
-				} catch (IOException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}*/
-			}
-		} catch (IOException e) {
-			System.out.println("Connection impossible, check the server IP or server status");
+			// We keep the socket open for following commands
+			// System.out.println( "Closing client socket..." );
+			// socket.close();
 		}
 	}
 
@@ -92,34 +84,29 @@ public class ShareClient {
 	}
 	
 	// getfilelist command
-	public void cmdGetfilelistFromServer() {
+	public void cmdGetfilelistFromServer() throws IOException {
 
 		printWriter.println("getFileList");
 		printWriter.flush();
 
-		try {
-			String[] newList = new String[0];
-			
-			lastResponse = readMessage();
+		
+		String[] newList = new String[0];
+		
+		lastResponse = readMessage();
 
-			System.out.println(lastResponse[0] + " >>> '" + lastResponse[1] + "'");
+		System.out.println(lastResponse[0] + " >>> '" + lastResponse[1] + "'");
 
-			if (!lastResponse[1].equals("")) {
-				String[] strFiles = lastResponse[1].split(";");
-				newList = new String[strFiles.length];
+		if (!lastResponse[1].equals("")) {
+			String[] strFiles = lastResponse[1].split(";");
+			newList = new String[strFiles.length];
 
-				for (int i = 0; i < strFiles.length; i++) {
-					String[] parts = strFiles[i].split(":");
-					newList[i] = parts[0] + "\t" + parts[1];
-				}
+			for (int i = 0; i < strFiles.length; i++) {
+				String[] parts = strFiles[i].split(":");
+				newList[i] = parts[0] + "\t" + parts[1];
 			}
-			
-			model.setListFileFromServer( newList );
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
 		}
-
+		
+		model.setListFileFromServer( newList );
 	}
 
 	private String[] readMessage() throws IOException {
@@ -143,40 +130,27 @@ public class ShareClient {
 		lastResponse = readMessage();
 	}
 
-	private void cmdRegister() {
-		try {
+	private void cmdRegister() throws IOException {
 
-			printWriter.println("register" + " " + clientSocket.getInetAddress().getHostAddress());
-			printWriter.flush();
+		printWriter.println("register" + " " + clientSocket.getInetAddress().getHostAddress());
+		printWriter.flush();
 
-			lastResponse = readMessage();
+		lastResponse = readMessage();
 
-			int givenID = Integer.parseInt(lastResponse[1]);
-			System.out.println(givenID);
-			model.setClientID((int) givenID);
-
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+		int givenID = Integer.parseInt(lastResponse[1]);
+		System.out.println(givenID);
+		model.setClientID((int) givenID);
 	}
 
-	public String cmdGetIP(int id) {
-		try {
-			printWriter.println("getIp" + " " + id);
-			printWriter.flush();
+	public String cmdGetIP(int id) throws IOException {
+		printWriter.println("getIp" + " " + id);
+		printWriter.flush();
 
-			lastResponse = readMessage();
+		lastResponse = readMessage();
 
-			givenIp = lastResponse[1];
-			
-			return givenIp;
-
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		return null;
+		givenIp = lastResponse[1];
+		
+		return givenIp;
 	}
 
 	// getter and setter

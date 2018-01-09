@@ -6,13 +6,9 @@ Date of creation: 5 janv. 2018
  */
 package client;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.net.Socket;
 
 import common.ConvenienceObservable;
 
@@ -58,8 +54,10 @@ public class PeerTransfer extends ConvenienceObservable implements Runnable
 			setProgress(1);
 			
 			// We close both streams. If a socket is bound to one of these, it will automatically be closed
+			System.out.println( "Closing PeerTransfer streams..." );
 			source.close();
 			dest.close();
+			System.out.println( "Streams closed." );
 		}
 		catch( IOException ioe )
 		{

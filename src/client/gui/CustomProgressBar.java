@@ -5,7 +5,7 @@ Author: Fabien
 Date of creation: 6 janv. 2018
  */
 
-package client;
+package client.gui;
 
 import java.awt.BorderLayout;
 import java.awt.Color;

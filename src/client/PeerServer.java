@@ -119,7 +119,6 @@ public class PeerServer extends AbstractServer {
 			// If we get here, the client session has ended
 			try
 			{
-				// Closes the socket
 				System.out.println( "Closing PeerServer socket..." );
 				if (!socket.isClosed())
 					socket.close();

@@ -6,7 +6,7 @@ Author: Célia Ahmad
 Date of creation: 2 janv. 2018
  */
 
-package gui;
+package client.gui;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
@@ -14,6 +14,7 @@ import java.awt.Dimension;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.IOException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
@@ -27,8 +28,6 @@ import javax.swing.event.ListSelectionEvent;
 
 import client.Client;
 import client.ClientModel;
-import client.CustomProgressBar;
-import client.DemoProgressBar2;
 import client.PeerClient;
 import client.PeerDownload;
 import client.PeerServer;
@@ -261,15 +260,21 @@ public class ClientFrame extends JFrame implements Observer, ActionListener {
 				t.start();
 				
 			}
-			catch (UnknownHostException e1)
+			catch (IOException ioe)
 			{
-				e1.printStackTrace();
+				System.err.println( "Error while downloading the file..." );
 			}
 		}
 		
 		else if( e.getSource() == jbMainClient )
 		{
-			cl.getShareClient().cmdGetfilelistFromServer();
+			try
+			{
+				cl.getShareClient().cmdGetfilelistFromServer();
+			} catch (IOException e1)
+			{
+				System.err.println( "Error while refreshing the shared files list..." );
+			}
 		}
 	}
 }
