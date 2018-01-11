@@ -10,6 +10,7 @@ package common;
 import java.util.Observable;
 import java.util.Observer;
 
+// This class extends Observable and makes some convenience changes to it
 public class ConvenienceObservable extends Observable
 {
 	public void addObserver( Observer o )
@@ -17,13 +18,15 @@ public class ConvenienceObservable extends Observable
 		super.addObserver( o );
 		o.update( this, null );
 	}
-
+	
+	// Marks the Observable as changed and notifies Observers immediately (no argument)
 	protected void changeAndNotify()
 	{
 		setChanged();
 		notifyObservers();
 	}
 	
+	// Marks the Observable as changed and notifies Observers immediately (with argument)
 	protected void changeAndNotify( Object obj )
 	{
 		setChanged();

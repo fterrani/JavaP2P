@@ -19,6 +19,7 @@ import java.util.Arrays;
 import java.util.logging.Level;
 import java.util.regex.Pattern;
 
+// This class is Runnable deals with the various commands ShareClients send to the ShareServer
 public class ClientSession implements Runnable
 {
 	// Network-related variables
@@ -30,7 +31,7 @@ public class ClientSession implements Runnable
 	private BufferedReader client;
 	private PrintWriter osw;
 	
-	// Application layer variables
+	// Client informations
 	private ClientInfo clientInfo;
 	
 	
@@ -56,6 +57,8 @@ public class ClientSession implements Runnable
 		log( Level.INFO, "Socket ready to be used." );
 	}
 	
+	// We reset the timeout duration to a new number of seconds
+	// If no command was received after that amount of time, the server closes the socket and removes client info and session
 	private void resetTimeout( int seconds )
 	{
 		if ( seconds <= 0 )
@@ -65,6 +68,7 @@ public class ClientSession implements Runnable
 		timeout = System.currentTimeMillis() + (1000 * seconds);
 	}
 	
+	// Register command: registers a client as a "file sharer" and returns a client ID
 	private String cmdRegister( String[] args )
 	{
 		if ( args.length != 1 )
@@ -117,7 +121,8 @@ public class ClientSession implements Runnable
 		
 		return formatTextData( Integer.toString(id) );
 	}
-
+	
+	// Updates the file list of the current client (only if he registered before with the register command)
 	private String cmdSharelist( String[] args )
 	{
 		if ( args.length == 0 )
@@ -183,6 +188,8 @@ public class ClientSession implements Runnable
 		return clientId;
 	}
 	
+	// Returns the list of files shared by all clients.
+	// This command can take a client ID as argument. If so, it returns only files shared by this client
 	private String cmdGetfilelist( String[] args )
 	{
 		if ( args.length > 1 )
@@ -231,8 +238,7 @@ public class ClientSession implements Runnable
 		return formatTextData( sb.toString() );
 	}
 	
-	
-	
+	// getip command: returns the IP of the client identified by the provided ID
 	private String cmdGetip( String[] args )
 	{
 		if ( args.length != 1 )
@@ -315,6 +321,7 @@ public class ClientSession implements Runnable
 				{
 					String reply = "";
 					
+					// All commands must start with a letter
 					if ( Pattern.matches("^[A-Za-z].*", line) )
 					{
 						String[] matches = line.trim().split("\\s+");
@@ -326,6 +333,7 @@ public class ClientSession implements Runnable
 							args = Arrays.copyOfRange( matches, 1, matches.length );
 						}
 						
+						// We try to know which command was sent
 						switch( command.toLowerCase() )
 						{
 							case "register": reply = cmdRegister( args ); break;
@@ -333,7 +341,8 @@ public class ClientSession implements Runnable
 							case "getfilelist": reply = cmdGetfilelist( args ); break;
 							case "getip": reply = cmdGetip( args ); break;
 							case "quit":  clientQuit = true; break;
-
+							
+							// We signal invalid commands
 							default:
 								reply = formatError( "Invalid command: " + matches[0] );
 						}

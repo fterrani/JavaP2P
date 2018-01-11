@@ -16,6 +16,7 @@ import java.util.Set;
 
 import common.ConvenienceObservable;
 
+// This class contains all information related to a client connected to the server
 public class ClientInfo extends ConvenienceObservable
 {
 	private InetAddress ip;

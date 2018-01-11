@@ -17,6 +17,8 @@ import javax.swing.JPanel;
 import javax.swing.JProgressBar;
 import javax.swing.plaf.basic.BasicProgressBarUI;
 
+
+// A customized progress bar
 public class CustomProgressBar extends JPanel
 {
 	private BasicProgressBarUI customUI = new BasicProgressBarUI()

@@ -186,6 +186,7 @@ public class ShareServerFrame extends JFrame implements Observer
 		t.setRepeats(false);
 		t.start();
 		
+		// We use a Swing timer to update the JTable, otherwise we generate ugly ArrayIndexOutOfBoundExceptions !!
 		//filesModel.setDataVector( fileList, filesColumns );
 	}
 	

@@ -13,11 +13,10 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.Socket;
 
+//This class represents a file upload from a socket
 public class PeerUpload extends PeerTransfer
 {
-	// Les "FileNotFoundException" sone jetées lorsque le programe n'arrive pas à LIRE dans le fichier
-	// pour une raison quelconque
-	// "IOException" représente les erreurs de transfert du réseau
+	// ( FileNotFoundException are thrown if the program was not able to WRITE in a file for any reason )
 	public PeerUpload( Socket peerSocket, File source, int fileSize ) throws FileNotFoundException, IOException
 	{
 		super(
@@ -25,5 +24,12 @@ public class PeerUpload extends PeerTransfer
 			peerSocket.getOutputStream(),
 			fileSize
 		);
+		
+		// If we couldn't connect to the PeerClient, we throw an exception
+		if ( !peerSocket.isConnected() )
+		{
+			System.out.println( "Unconnected to PeerClient! Unable to share " + source.getName() );
+			throw new IOException();
+		}
 	}
 }

@@ -26,16 +26,18 @@ import common.AbstractServer;
 import server.ClientInfo;
 import server.ShareServer;
 
-public class PeerServer extends AbstractServer {
+// Server giving files to other clients
+public class PeerServer extends AbstractServer
+{
 	private ClientModel model;
-
 	
 	public PeerServer( ClientModel model, InetAddress _ip, int _port ) throws IOException
 	{
 		super(_ip, _port);
 		this.model = model;
 	}
-
+	
+	// We use AbstractServer so we must provide it with a Runnable task for each session
 	protected Runnable initClient( Socket clientSocket )
 	{
 		try
@@ -49,7 +51,7 @@ public class PeerServer extends AbstractServer {
 		}
 	}
 	
-	
+	// Represents a peer session (another peer wants to download a file)
 	public class PeerServerSession implements Runnable
 	{
 		private Socket socket;
@@ -68,19 +70,30 @@ public class PeerServer extends AbstractServer {
 			os = new BufferedOutputStream( _socket.getOutputStream() );
 		}
 		
+		// We send back the filesize when the PeerClient asks for it
+		// The upload starts immediately after
 		private void cmdGetFile( String[] args ) throws IOException
 		{
 			File fileToSend = new File( model.getShareFolder(), args[0] );
 			
 			System.out.println("FILE TO SEND: " + fileToSend.getAbsolutePath() );
 			
-			String reply = "DATA " + fileToSend.length() + "\r\n";
+			if ( fileToSend.exists() && fileToSend.canRead() )
+			{
+				String reply = "DATA " + fileToSend.length() + "\r\n";
+				os.write( reply.getBytes() );
+				os.flush();
+				
+				PeerUpload upload = new PeerUpload( socket, fileToSend, (int) fileToSend.length() );
+				upload.run();
+			}
 			
-			os.write( reply.getBytes() );
-			os.flush();
-			
-			PeerUpload upload = new PeerUpload( socket, fileToSend, (int) fileToSend.length() );
-			upload.run();
+			else
+			{
+				String reply = "EROR File "+args[0]+" doesn't exist or cannot be read\r\n";
+				os.write( reply.getBytes() );
+				os.flush();
+			}
 		}
 		
 		public void run()
@@ -89,7 +102,7 @@ public class PeerServer extends AbstractServer {
 			{
 				boolean fileSent = false;
 				
-				// We keep reading lines as long as we are not in timeout
+				// We keep listening until we receive a getfile command
 				while( ! fileSent )
 				{
 					String line = reader.readLine();

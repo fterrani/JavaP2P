@@ -11,6 +11,8 @@ import java.io.IOException;
 import java.net.BindException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.logging.FileHandler;
@@ -32,6 +34,7 @@ public class MainServer
 		{
 			// Logs event in a file
 			SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM");
+			Files.createDirectory( Paths.get("server_logs") );
 			String filename = String.format( "./server_logs/server_log_%s.txt", sdf.format(new Date()) );
 			fileLog = new FileHandler( filename, true );
 			fileLog.setFormatter( new CustomFormatter() );
@@ -43,8 +46,8 @@ public class MainServer
 		
 		try
 		{
-			// Listening IP
-			InetAddress ip = InetAddress.getByName("127.0.0.1");
+			// Listening IP. By default, ShareServer will listen on every interface
+			InetAddress ip = InetAddress.getByName("0.0.0.0");
 			int port = ShareServer.PORT_DEFAULT;
 			
 			// Creating the server

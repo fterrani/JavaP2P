@@ -55,8 +55,8 @@ public class ClientFrame extends JFrame implements Observer, ActionListener {
 	private JPanel jpClientButtons = new JPanel();
 	private JLabel jlOtherClients = new JLabel("Files available");
 	private JButton refreshListFromServer = new JButton("Refresh list");
-	private JList<PeerFile> filesFromPeer;
-	private JComboBox<String> peerList;
+	private JList<PeerFile> filesFromPeer; // A list containing files shared by the selected peer
+	private JComboBox<String> peerList; // A list of peers
 	private JScrollPane jsOtherClients;
 	private JButton jbdownload = new JButton("Download");
 
@@ -89,7 +89,8 @@ public class ClientFrame extends JFrame implements Observer, ActionListener {
 
 		addAllComponents();
 		pack();
-
+		
+		// We observe the client's model to update the GUI when needed
 		cm.addObserver(this);
 	}
 
@@ -175,6 +176,7 @@ public class ClientFrame extends JFrame implements Observer, ActionListener {
 	// method from Observer Interface
 	public void update(Observable o, Object arg)
 	{
+		// A download started or progressed
 		if (arg instanceof PeerDownload)
 		{
 			PeerDownload download = (PeerDownload) arg;
@@ -209,7 +211,6 @@ public class ClientFrame extends JFrame implements Observer, ActionListener {
 						sc.cmdShareFiles();
 						sc.cmdGetfilelistFromServer();
 					} catch (IOException e) {
-						// TODO Auto-generated catch block
 						System.err.println("Error while refreshing the shared files list after complete download...");
 					}
 				}
@@ -219,11 +220,10 @@ public class ClientFrame extends JFrame implements Observer, ActionListener {
 
 		else if (arg instanceof String) {
 			String s = arg.toString();
-
+			
+			// We must update the displayed file list
 			if (s.equals("server_filelist"))
 			{
-				Map<Integer, PeerFile[]> fileList = cl.getModel().getListFileFromServer();
-				
 				// We update the peer list with the one received from the server
 				updatePeerList();
 			}
@@ -296,6 +296,7 @@ public class ClientFrame extends JFrame implements Observer, ActionListener {
 	
 	public void actionPerformed(ActionEvent e) {
 		
+		// We must download a file for the user
 		if (e.getSource() == jbdownload)
 		{
 			try
@@ -320,7 +321,8 @@ public class ClientFrame extends JFrame implements Observer, ActionListener {
 				System.err.println("Error while downloading the file...");
 			}
 		}
-
+		
+		// We must share the local folder's files and update the file list
 		else if (e.getSource() == shareAndRefresh)
 		{
 			try {
@@ -333,6 +335,7 @@ public class ClientFrame extends JFrame implements Observer, ActionListener {
 			}
 		}
 		
+		// We must refresh the file list from the server
 		else if (e.getSource() == refreshListFromServer)
 		{
 			try {
@@ -342,6 +345,7 @@ public class ClientFrame extends JFrame implements Observer, ActionListener {
 			}
 		}
 		
+		// We must show the selected peer's files
 		else if (e.getSource() == peerList && peerList.getSelectedIndex() > -1)
 		{
 			// Display the selected peer's files or all files if no peer was selected

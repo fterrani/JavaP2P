@@ -21,7 +21,9 @@ public class ClientModel extends ConvenienceObservable implements Observer
 {
 	// ShareClient data
 	private File shareFolder;
-	private int clientID = 0;
+	private int clientID = 0; // received from the server
+	
+	// List of shared files for each client ID
 	private Map<Integer, PeerFile[]> listFileFromServer = new HashMap<Integer, PeerFile[]>();
 	
 	// PeerServer data
@@ -30,7 +32,6 @@ public class ClientModel extends ConvenienceObservable implements Observer
 	// PeerClient data
 	private ArrayList<PeerDownload> downloads = new ArrayList<>();
 	
-	// Données liées au PeerServer
 	public static final int PORT_PEER_SERVER = 60000;
 	
 	public ClientModel( File shareFolder )
@@ -40,16 +41,13 @@ public class ClientModel extends ConvenienceObservable implements Observer
 
 	public void update( Observable o, Object arg )
 	{
-		// Envoie les PeerDownload et PeerUpload en argument aux observateurs
+		// ClientModel warns its observers (in our case ClientFrame) about downloads and uploads
 		changeAndNotify( o );
 	}
 	
-	//getter and setter
 	public File getShareFolder() {
 		return shareFolder;
 	}
-
-
 
 	public void setShareFolder(File shareFolder)
 	{
@@ -57,36 +55,21 @@ public class ClientModel extends ConvenienceObservable implements Observer
 		changeAndNotify("share_folder");
 	}
 
-
-
-
-
 	public int getClientID() {
 		return clientID;
 	}
-
-
-
-
 
 	public void setClientID(int clientID)
 	{
 		this.clientID = clientID;
 		changeAndNotify("client_id");
 	}
-
-
-
-
-
+	
 	public Map<Integer, PeerFile[]> getListFileFromServer() {
 		return listFileFromServer;
 	}
-
-
-
-
-
+	
+	// We create a new list from a set of IDs, and a set of String arrays
 	public void setListFileFromServer( int[] clientIds, PeerFile[][] fileNames )
 	{
 		int n = Math.min( clientIds.length, fileNames.length );
@@ -105,13 +88,13 @@ public class ClientModel extends ConvenienceObservable implements Observer
 	public ArrayList<PeerUpload> getUploads() {
 		return uploads;
 	}
-
-
-
+	
 	public void addNewUpload( PeerUpload upload )
 	{
 		uploads.add( upload );
 		upload.addObserver( this );
+		
+		// We start observing the upload's progress
 		changeAndNotify( "uploads" );
 	}
 
@@ -123,6 +106,8 @@ public class ClientModel extends ConvenienceObservable implements Observer
 	{
 		downloads.add( download );
 		download.addObserver( this );
+		
+		 // We start observing the download's progress
 		changeAndNotify( "downloads" );
 	}
 }

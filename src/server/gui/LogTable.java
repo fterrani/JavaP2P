@@ -20,6 +20,9 @@ import javax.swing.JTable;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 
+// This class stores and manages a JTable containing logs
+// It contains all log records added with addRecord().
+// It also contains a handler that warns the JTable when a new record is inserted. (see the private class LogTableHandler below)
 public class LogTable
 {
 	private static SimpleDateFormat logTimeFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
@@ -40,6 +43,7 @@ public class LogTable
 		handler = new LogTableHandler();
 	}
 	
+	// Adds a new LogRecord to the table
 	public void addRecord( LogRecord record )
 	{
 		records.add( record );
@@ -71,6 +75,7 @@ public class LogTable
 		return handler;
 	}
 	
+	// A customized CellRenderer that
 	private class LogTableCellRenderer extends DefaultTableCellRenderer
 	{
 		public LogTableCellRenderer()
@@ -97,6 +102,7 @@ public class LogTable
 		}
 	}
 	
+	// A custom log handler designed to work with a LogTable instance
 	private class LogTableHandler extends Handler
 	{
 		public LogTableHandler()

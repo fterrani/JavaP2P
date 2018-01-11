@@ -19,15 +19,16 @@ import client.gui.ClientFrame;
 
 public class Client 
 {
+	// All client data (shared files, peer server IP, ...)
 	private ClientModel model;
 	
 	private InetAddress peerServerIP;
 	private InetAddress serverIP;
 	private int port ;
 	
-	private ShareClient sc ;
-	private PeerServer ps ;
-	private PeerClient pc ;
+	private ShareClient sc ; // Client to contact the server with the filelist
+	private PeerServer ps ; // Server giving files to other clients
+	private PeerClient pc ; // Client to ask file to other peers
 	
 	
 	
@@ -51,6 +52,7 @@ public class Client
 	
 	public Client( File shareFolder, InetAddress _peerServerIP, InetAddress _serverIP ) throws IOException
 	{
+		// We will share files contained in shareFolder
 		model= new ClientModel( shareFolder );
 		
 		peerServerIP = _peerServerIP;

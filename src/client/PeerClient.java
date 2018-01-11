@@ -18,6 +18,11 @@ import java.io.PrintWriter;
 import java.net.InetAddress;
 import java.net.Socket;
 
+import javax.swing.JOptionPane;
+
+
+// Client to ask file to other peers
+
 public class PeerClient {
 	private ClientModel model;
 	
@@ -33,34 +38,44 @@ public class PeerClient {
 		return clientDownloadingSocket ;
 	}
 	
-	// Petit exemple de méthode. ClientFrame appellerait une méthode de Client pour avertir
-	// que l'utilisateur veut télécharger un fichier.
-	// Client appelerait ensuite peerClient.askForFile( ... )
-	
-	public PeerDownload askForFile( InetAddress ip, String filename )
+	// Asks for information about the file to download then starts the download
+	public void askForFile( InetAddress ip, String filename )
 	{
 		System.out.println(
 			"Client " + model.getClientID()
 			+ " ask for " + filename
-			+ " stored at " + ip.getHostAddress()
+			+ " stored at " + ip.getHostAddress() + ". Launching a thread..."
 		);
 		
-		PeerDownload download = null;
-		
-		try
+		Thread t = new Thread( new Runnable()
 		{
-			Socket peerSocket = connectToClient(ip.getHostAddress(), model.PORT_PEER_SERVER);
-			download = getFile( peerSocket, filename );
-		}
-		catch (Exception e)
-		{
-			e.printStackTrace();
-		}
+			public void run()
+			{
+				try
+				{
+					Socket peerSocket = connectToClient(ip.getHostAddress(), model.PORT_PEER_SERVER);
+					getFile( peerSocket, filename );
+				}
+				catch (Exception e)
+				{
+					JOptionPane.showMessageDialog(null,
+						String.format(
+							"Problem while connecting to PeerServer %s and retrieving %s.",
+							ip.getHostAddress(),
+							filename
+						)
+					);
+					
+					System.out.println( "Problem while connecting to PeerServer and retrieving " + filename );
+				}
+			}
+		});
 		
-		return download;
+		t.start();
 	}
 	
-	private PeerDownload getFile(Socket socket, String filename) throws IOException
+	// Sends a getfile command to a PeerServer to get the file size
+	private void getFile(Socket socket, String filename) throws IOException
 	{
 		BufferedReader reader = new BufferedReader(
 			new InputStreamReader(
@@ -76,14 +91,29 @@ public class PeerClient {
 		);
 		
 		writer.println( "getfile " + filename );
+		
+		// We read the filesize obtained from the PeerServer
 		String line = reader.readLine();
-		int taille = Integer.parseInt( line.split(" ")[1] );
+		String[] parts = line.split(" ");
 		
-		PeerDownload download = new PeerDownload( socket, new File(model.getShareFolder(), filename), taille );
-		model.addNewDownload( download );
-		Thread t = new Thread( download );
-		t.start();
+		if ( parts[0].equals("EROR") )
+		{
+			// We throw a FileNotFoundException if the file couldn't be found on the peer's system
+			throw new FileNotFoundException();
+		}
 		
-		return download;
+		else
+		{
+			int taille = Integer.parseInt( parts[1] );
+			
+			// We start downloading the file
+			PeerDownload download = new PeerDownload( socket, new File(model.getShareFolder(), filename), taille );
+			model.addNewDownload( download ); // The download is added to the model
+			download.run();
+		}
+		
+		
+		
+
 	}
 }

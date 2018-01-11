@@ -14,6 +14,7 @@ import java.util.logging.Logger;
 
 import common.AbstractServer;
 
+// This class represents the server that shares the file list with all clients
 public class ShareServer extends AbstractServer
 {
 	public static final int PORT_DEFAULT = 50000;
@@ -60,6 +61,8 @@ public class ShareServer extends AbstractServer
 		model.setStarted( true );
 	}
 	
+	// We create a new ClientSession and a new ClientInfo when someone connects.
+	// We then launch a thread to manage each client session
 	protected Runnable initClient( Socket clientSocket )
 	{
 		ClientSession cs = null;

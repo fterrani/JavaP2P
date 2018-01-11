@@ -12,7 +12,8 @@ import java.io.OutputStream;
 
 import common.ConvenienceObservable;
 
-// File upload and download class
+// This class represents a data transfer between two streams
+// It is Observable and warns about the transfer's progress
 public class PeerTransfer extends ConvenienceObservable implements Runnable
 {
 	private OutputStream dest;
@@ -73,6 +74,8 @@ public class PeerTransfer extends ConvenienceObservable implements Runnable
 		dest = outStream;
 	}
 	
+	// We keep track of all bytes that were transfered
+	// Then we update the progress value and warn the Observers (in our case ClientFrame)
 	public void addTransferedBytes( int bytes )
 	{
 		transferedBytes += bytes;

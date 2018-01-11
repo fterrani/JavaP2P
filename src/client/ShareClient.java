@@ -27,28 +27,27 @@ import java.util.Map;
 import java.util.Observable;
 import java.util.Observer;
 
+// Client to contact the server with the filelist
 public class ShareClient {
 
 	// port for connexion to server
 	public static final int PORT_DEFAULT = 50000;
-	private InetAddress serverIP ;
+	private InetAddress serverIP;
 	private Socket clientSocket;
 	private BufferedReader bufferedReader;
 	private PrintWriter printWriter;
-	private String[] lastResponse;
-	private String givenIp;
+	private String[] lastResponse; // contains the last response received from the server
 	private ClientModel model;
 	private File shareFolder;
 	
 
-	// constructeur sans argument qui crée un dossier au lancement
 	public ShareClient(ClientModel model, InetAddress serverIP) {
 		this.model = model;
 		this.serverIP= serverIP;
 		shareFolder= model.getShareFolder();
 	}
 
-	/* Connection and retrieving file list to/from server */
+	// Connection and retrieving file list to/from server
 	public void connectToServer() throws IOException {
 
 		System.out.println("Connecting to the server: " + serverIP.getHostName());
@@ -75,18 +74,25 @@ public class ShareClient {
 		
 		bufferedReader = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
 	}
-
+	
+	// All messages start with:
+	// - 4 characters specifying the message's nature (INFO,EROR,DATA)
+	// - a space character
+	// - other textual data (but without any newline)
 	private String[] splitMessage( String message )
 	{
 		String[] parts = new String[2];
 		
+		// We store INFO, EROR or DATA in [0]
 		parts[0] = message.substring(0, 4);
+		
+		// We store the remaining chars in [1]
 		parts[1] = message.substring(5);
 		
 		return parts;
 	}
 	
-	// getfilelist command
+	// getfilelist command (used to get the list of files shared by all peers)
 	public void cmdGetfilelistFromServer() throws IOException {
 
 		printWriter.println("getFileList");
@@ -102,9 +108,13 @@ public class ShareClient {
 		if (!lastResponse[1].equals(""))
 		{
 			int id;
+			
+			// Each entry separated by ; represents a file
 			String[] strFiles = lastResponse[1].split(";");
 			
 			for (int i = 0; i < strFiles.length; i++) {
+				
+				// An entry consists in "<client_id>:<file_name>"
 				String[] parts = strFiles[i].split(":");
 				
 				if ( parts.length == 2 )
@@ -134,6 +144,7 @@ public class ShareClient {
 		PeerFile[][] fileNames = new PeerFile[ peerCount ][0];
 		int i = 0;
 		
+		// We generate an int array for client IDs, and a PeerFile[][] array for the files
 		for( Map.Entry<Integer, ArrayList<PeerFile>> peer : newList.entrySet() )
 		{
 			clientIds[i] = peer.getKey();
@@ -141,22 +152,25 @@ public class ShareClient {
 			i++;
 		}
 		
+		// We update the client model
 		model.setListFileFromServer( clientIds, fileNames );
 	}
-
+	
+	// Used to parse the server's messages
 	private String[] readMessage() throws IOException {
 		return splitMessage(bufferedReader.readLine());
 	}
 	
-	// sharelists command
+	// sharelist command (used to create or update a list of shared files on the server)
 	public void cmdShareFiles() throws IOException {
 		String listFileToShare = "";
 
-		File[] contenuDossier = shareFolder.listFiles();
+		File[] sharedFiles = shareFolder.listFiles();
 
-		for (int j = 0; j < contenuDossier.length; j++)
+		for (int j = 0; j < sharedFiles.length; j++)
 		{
-			listFileToShare += (j>0?" ":"") + contenuDossier[j].getName();
+			// Each file is an argument of the sharelist command
+			listFileToShare += (j>0?" ":"") + sharedFiles[j].getName();
 		}
 
 		printWriter.println("shareList" + " " + listFileToShare);
@@ -164,10 +178,11 @@ public class ShareClient {
 		
 		lastResponse = readMessage();
 	}
-
+	
+	// register command (used to register as a "file sharer" on the server
 	private void cmdRegister() throws IOException {
 
-		printWriter.println("register" + " " + clientSocket.getInetAddress().getHostAddress());
+		printWriter.println("register" + " " + clientSocket.getLocalAddress().getHostAddress() );
 		printWriter.flush();
 
 		lastResponse = readMessage();
@@ -176,27 +191,25 @@ public class ShareClient {
 		System.out.println(givenID);
 		model.setClientID((int) givenID);
 	}
-
+	
+	// getip command (used to retrieve an IP from a client ID)
 	public String cmdGetIP(int id) throws IOException {
 		printWriter.println("getIp" + " " + id);
 		printWriter.flush();
 
 		lastResponse = readMessage();
 
-		givenIp = lastResponse[1];
-		
-		return givenIp;
+		return lastResponse[1];
 	}
 
-	// getter and setter
 
 	public String getServerIP() {
-		// TODO Auto-generated method stub
 		return serverIP.getHostAddress();
 	}
 
 
-	public String[] getContenuDossier() {
+	public String[] getContenuDossier()
+	{
 		return shareFolder.list();
 	}
 

@@ -7,9 +7,11 @@ Date of creation: 9 janv. 2018
 
 package client;
 
+
+// This class stores information about a downloadable file
 public class PeerFile implements Comparable<PeerFile>
 {
-	private int clientId;
+	private int clientId; // client ID of the file's owner
 	private String fileName;
 	
 	public PeerFile( int _clientId, String _fileName )

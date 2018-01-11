@@ -19,12 +19,14 @@ import java.util.logging.LogRecord;
 
 import common.ConvenienceObservable;
 
+// Represents all information useful to the ShareServer
+// The model is Observable to allow GUI to update itself
 public class ShareServerModel extends ConvenienceObservable implements Observer
 {
-	private boolean started;
-	private int nextClientId;
-	private Set<ClientSession> clientSessions;
-	private Set<ClientInfo> clientInfos;
+	private boolean started; // Switches to TRUE when the server is started and ready to listen
+	private int nextClientId; // Contains the next client ID to provide
+	private Set<ClientSession> clientSessions; // Objects dealing with client connections
+	private Set<ClientInfo> clientInfos; // Objects dealing with client information
 	
 	public ShareServerModel()
 	{
@@ -39,11 +41,13 @@ public class ShareServerModel extends ConvenienceObservable implements Observer
 		return clientSessions.size();
 	}
 	
+	// Returns a new client ID and increments nextClientId
 	public int getNextClientId()
 	{
 		return nextClientId++;
 	}
 	
+	// Returns a client IP from a client ID
 	public InetAddress getClientIp( int clientId )
 	{
 		InetAddress ip = null;
@@ -64,6 +68,7 @@ public class ShareServerModel extends ConvenienceObservable implements Observer
 		return ip;
 	}
 	
+	// Checks if a client with the provided ID exists
 	public boolean clientIdExists( int id )
 	{
 		boolean found = false;
@@ -89,10 +94,7 @@ public class ShareServerModel extends ConvenienceObservable implements Observer
 		return getFilelist( -1 );
 	}
 	
-	
-		
-		
-	
+	// The list follows this pattern: "<client_A>:<filename_a>;<client_A>:<filename_b>;<client_B>:<filename_c>;...."
 	public String[][] getFilelist( int clientId )
 	{
 		ArrayList<String[]> list = new ArrayList<>();
@@ -158,7 +160,7 @@ public class ShareServerModel extends ConvenienceObservable implements Observer
 
 	public void update( Observable o, Object args )
 	{
-		// If clientInfos were updated, we warn the server model observers
+		// If clientInfos were updated, we warn the server model observers (in our case, ServerFrame)
 		changeAndNotify();
 	}
 
