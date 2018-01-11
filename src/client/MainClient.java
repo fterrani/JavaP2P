@@ -50,9 +50,9 @@ public class MainClient
 				);
 			}
 			
-			// We exit the program if no valid IP was provided
+			// We listen on the local machine if no IP was provided
 			if ( argServerIP == null )
-				System.exit(0);
+				argServerIP = "127.0.0.1";
 			
 			// Setting up client local folder (reads argument 2 if it exists)
 			if (args.length >= 2)
